@@ -338,6 +338,7 @@ static void startdrag(struct wl_listener *listener, void *data);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
+static void toggleborders(const Arg* arg);
 static void togglefloating(const Arg *arg);
 static void togglefullscreen(const Arg *arg);
 static void toggletag(const Arg *arg);
@@ -1079,10 +1080,9 @@ createpointer(struct wlr_pointer *pointer)
 			libinput_device_config_tap_set_drag_enabled(device, tap_and_drag);
 			libinput_device_config_tap_set_drag_lock_enabled(device, drag_lock);
 			libinput_device_config_tap_set_button_map(device, button_map);
+			if (libinput_device_config_scroll_has_natural_scroll(device))
+				libinput_device_config_scroll_set_natural_scroll_enabled(device, natural_scrolling);
 		}
-
-		if (libinput_device_config_scroll_has_natural_scroll(device))
-			libinput_device_config_scroll_set_natural_scroll_enabled(device, natural_scrolling);
 
 		if (libinput_device_config_dwt_is_available(device))
 			libinput_device_config_dwt_set_enabled(device, disable_while_typing);
@@ -2155,6 +2155,8 @@ resize(Client *c, struct wlr_box geo, int interact)
 	if (!c->mon || !client_surface(c)->mapped)
 		return;
 
+	if (geo.width < 50) geo.width = 50;
+	if (geo.height < 50) geo.height = 50;
 	bbox = interact ? &sgeom : &c->mon->w;
 
 	client_set_bounds(c, geo.width, geo.height);
@@ -2680,6 +2682,18 @@ tile(Monitor *m)
 		}
 		i++;
 	}
+}
+
+void toggleborders(const Arg* arg) {
+  Client *c;
+
+  if (selmon) {
+    c = focustop(selmon);
+    if (c) {
+      c->bw = c->bw ? 0 : borderpx;
+      resize(c, c->geom, (c->isfloating && !c->isfullscreen));
+    }
+  }
 }
 
 void
