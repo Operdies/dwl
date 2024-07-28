@@ -503,6 +503,22 @@ applyrules(Client *c)
 			}
 		}
 	}
+
+  // Center floating clients
+  if (c->isfloating && !c->isfullscreen) {
+    int minWidth = 50;
+    int minHeight = 50;
+    int padHeight = 100;
+    int padWidth = 100;
+    if (c->geom.height < minHeight) c->geom.height = minHeight;
+    if (c->geom.width < minWidth) c->geom.width = minWidth;
+    if (c->geom.width > mon->w.width) c->geom.width = mon->w.width - padWidth;
+    if (c->geom.height > mon->w.height) c->geom.height = mon->w.height - padHeight;
+
+    c->geom.x = mon->w.x + mon->w.width / 2 - c->geom.width / 2;
+    c->geom.y = mon->w.y + mon->w.height / 2 - c->geom.height / 2;
+  }
+
 	setmon(c, mon, newtags);
 }
 
