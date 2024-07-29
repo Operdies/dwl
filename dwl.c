@@ -84,6 +84,27 @@
 
 /* enums */
 enum { CurNormal, CurPressed, CurMove, CurResize }; /* cursor */
+enum {
+  NORTH = 1,
+  EAST = 2,
+  WEST = 4,
+  SOUTH = 8,
+  SOUTHWEST = SOUTH | WEST,
+  SOUTHEAST = SOUTH | EAST,
+  NORTHEAST = NORTH | EAST,
+  NORTHWEST = NORTH | WEST
+}; /* resize anchors */                                 
+static char *resize_cursors[]  = {
+  [0] = "default",
+  [NORTH] = "n-resize",
+  [EAST] = "e-resize",
+  [WEST] = "w-resize",
+  [SOUTH] = "s-resize",
+  [SOUTHEAST] = "se-resize",
+  [SOUTHWEST] = "sw-resize",
+  [NORTHEAST] = "ne-resize",
+  [NORTHWEST] = "nw-resize",
+};
 enum { XDGShell, LayerShell, X11 }; /* client types */
 enum { LyrBg, LyrBottom, LyrTile, LyrFloat, LyrTop, LyrFS, LyrOverlay, LyrBlock, NUM_LAYERS }; /* scene layers */
 #ifdef XWAYLAND
@@ -425,6 +446,7 @@ static struct wl_listener lock_listener = {.notify = locksession};
 static struct wlr_seat *seat;
 static KeyboardGroup *kb_group;
 static unsigned int cursor_mode;
+static uint32_t grab_gravity;
 static Client *grabc;
 static int grabcx, grabcy; /* client-relative */
 
@@ -2132,8 +2154,21 @@ motionnotify(uint32_t time, struct wlr_input_device *device, double dx, double d
 			.width = grabc->geom.width, .height = grabc->geom.height}, 1);
 		return;
 	} else if (cursor_mode == CurResize) {
-		resize(grabc, (struct wlr_box){.x = grabc->geom.x, .y = grabc->geom.y,
-			.width = (int)round(cursor->x) - grabc->geom.x, .height = (int)round(cursor->y) - grabc->geom.y}, 1);
+		struct wlr_box b = grabc->geom; 
+		if (grab_gravity & WEST) {
+			b.x = (int)round(cursor->x);
+			b.width = grabc->geom.x - (int)round(cursor->x) + grabc->geom.width;
+		} else if (grab_gravity & EAST) {
+			b.width = (int)round(cursor->x) - grabc->geom.x;
+		}
+		if (grab_gravity & NORTH) {
+			b.y = (int)round(cursor->y);
+			b.height =
+				grabc->geom.y - (int)round(cursor->y) + grabc->geom.height;
+		} else if (grab_gravity & SOUTH) {
+			b.height = (int)round(cursor->y) - grabc->geom.y;
+		}
+		resize(grabc, b, 1);
 		return;
 	}
 
@@ -2161,9 +2196,49 @@ motionrelative(struct wl_listener *listener, void *data)
 			event->unaccel_dx, event->unaccel_dy);
 }
 
+static uint32_t get_gravity(int *x, int *y) {
+  uint32_t gravity;
+  if (!grabc || !cursor)
+    return 0;
+
+  gravity = 0;
+
+  if (cursor->x < grabc->geom.x + (double)grabc->geom.width / 3)
+    gravity |= WEST;
+  if (cursor->x > grabc->geom.x + ((double)grabc->geom.width * 2 / 3))
+    gravity |= EAST;
+  if (cursor->y < grabc->geom.y + (double)grabc->geom.height / 3)
+    gravity |= NORTH;
+  if (cursor->y > grabc->geom.y + ((double)grabc->geom.height * 2 / 3))
+    gravity |= SOUTH;
+
+	// fall back to default grab if grabbing in e.g. the middle of the window
+	if (gravity == 0) 
+		gravity = SOUTHEAST;
+
+	if (gravity & WEST) {
+		*x = grabc->geom.x;
+	} else if (gravity & EAST) {
+		*x = grabc->geom.x + grabc->geom.width;
+	} else {
+		*x = grabc->geom.x + grabc->geom.width / 2;
+	}
+
+	if (gravity & NORTH) {
+		*y = grabc->geom.y;
+	} else if (gravity & SOUTH) {
+		*y = grabc->geom.y + grabc->geom.height;
+	} else {
+		*y = grabc->geom.y + grabc->geom.height / 2;
+	}
+
+  return gravity;
+}
+
 void
 moveresize(const Arg *arg)
 {
+	int grabx, graby;
 	if (cursor_mode != CurNormal && cursor_mode != CurPressed)
 		return;
 	xytonode(cursor->x, cursor->y, NULL, &grabc, NULL, NULL, NULL);
@@ -2179,12 +2254,12 @@ moveresize(const Arg *arg)
 		wlr_cursor_set_xcursor(cursor, cursor_mgr, "fleur");
 		break;
 	case CurResize:
+		grabx = graby = 0;
+		grab_gravity = get_gravity(&grabx, &graby);
 		/* Doesn't work for X11 output - the next absolute motion event
 		 * returns the cursor to where it started */
-		wlr_cursor_warp_closest(cursor, NULL,
-				grabc->geom.x + grabc->geom.width,
-				grabc->geom.y + grabc->geom.height);
-		wlr_cursor_set_xcursor(cursor, cursor_mgr, "se-resize");
+		wlr_cursor_warp_closest(cursor, NULL, grabx, graby);
+		wlr_cursor_set_xcursor(cursor, cursor_mgr, resize_cursors[grab_gravity]);
 		break;
 	}
 }
