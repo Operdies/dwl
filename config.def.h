@@ -25,6 +25,9 @@ static const Rule rules[] = {
 	{ "discord",          NULL,       1 << 2,       0,           -1 },
 	{ "steam",            NULL,       1 << 8,       0,           -1 },
 	{ "ffxiv_dx11.exe",   NULL,       ~0,           0,           -1 },
+	{ "xfce-polkit",      NULL,       0,            1,           -1 },
+	{ "XIVLauncher.Core", NULL,       0,            1,           -1 },
+	{ "org.pulseaudio.pavucontrol", NULL, 0,        1,           -1 },
 };
 
 /* layout(s) */
