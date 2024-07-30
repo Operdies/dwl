@@ -19,7 +19,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
       reset.
   </description>
 
-  <interface name="zdwl_ipc_manager_v2" version="2">
+  <interface name="zdwl_ipc_manager_v2" version="3">
     <description summary="manage dwl state">
       This interface is exposed as a global in wl_registry.
 
@@ -60,7 +60,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
     </event>
   </interface>
 
-  <interface name="zdwl_ipc_output_v2" version="2">
+  <interface name="zdwl_ipc_output_v2" version="3">
     <description summary="control dwl output">
       Observe and control a dwl output.
 
@@ -177,5 +177,11 @@ I would probably just submit raphi's patchset but I don't think that would be po
       </description>
       <arg name="is_floating" type="uint" summary="If the selected client is floating. Nonzero is valid, zero invalid"/>
     </event>
+
+    <!-- Version 3 -->
+    <request name="set_mfact" since="3">
+      <description summary="Set the mfact of this output"/>
+      <arg name="mfact" type="fixed" summary="the new mfact"/>
+    </request>
   </interface>
 </protocol>
