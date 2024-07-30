@@ -317,6 +317,7 @@ static void destroysessionlock(struct wl_listener *listener, void *data);
 static void destroysessionmgr(struct wl_listener *listener, void *data);
 static void destroykeyboardgroup(struct wl_listener *listener, void *data);
 static Monitor *dirtomon(enum wlr_direction dir);
+static void doublestack(Monitor *m);
 static void dwl_ipc_manager_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id);
 static void dwl_ipc_manager_destroy(struct wl_resource *resource);
 static void dwl_ipc_manager_get_output(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *output);
@@ -1450,6 +1451,49 @@ dirtomon(enum wlr_direction dir)
 	return selmon;
 }
 
+void
+doublestack(Monitor *m)
+{
+	unsigned int mw, my, ty, sw;
+	int i, n = 0;
+	Client *c;
+
+	wl_list_for_each(c, &clients, link)
+		if (VISIBLEON(c, m) && !c->isfloating && !c->isfullscreen)
+			n++;
+	if (n == 0)
+		return;
+
+	if (n > m->nmaster + 1) {
+		mw = m->nmaster ? (int)roundf(m->w.width * m->mfact) : 0;
+		sw = (m->w.width - mw) / 2;
+	} else if (n > m->nmaster) {
+		mw = m->nmaster ? (int)roundf(m->w.width * m->mfact) : 0;
+		sw = (m->w.width) - mw;
+	} else {
+		mw = m->w.width;
+		sw = 0;
+	}
+	i = my = ty = 0;
+	wl_list_for_each(c, &clients, link) {
+		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
+			continue;
+		if (i < m->nmaster) {
+			resize(c, (struct wlr_box){.x = m->w.x, .y = m->w.y + my, .width = mw,
+				.height = (m->w.height - my) / (MIN(n, m->nmaster) - i)}, 0);
+			my += c->geom.height;
+		} else if (i == m->nmaster) {
+			resize(c, (struct wlr_box){.x = m->w.x + mw, .y = m->w.y + ty,
+				.width = sw, .height = m->w.height}, 0);
+			mw += sw;
+		} else {
+			resize(c, (struct wlr_box){.x = m->w.x + mw, .y = m->w.y + ty,
+				.width = m->w.width - mw, .height = (m->w.height - ty) / (n - i)}, 0);
+			ty += c->geom.height;
+		}
+		i++;
+	}
+}
 void
 dwl_ipc_manager_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id)
 {
