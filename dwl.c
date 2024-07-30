@@ -2225,14 +2225,19 @@ motionnotify(uint32_t time, struct wlr_input_device *device, double dx, double d
 		if (grab_gravity & WEST) {
 			b.x = (int)round(cursor->x);
 			b.width = grabc->geom.x - (int)round(cursor->x) + grabc->geom.width;
+			/* Prevent dragging the window right when size limit is reached */
+			if (b.x >= (int)(grabc->geom.x + grabc->geom.width - minwidth - grabc->bw * 2))
+				b.x = grabc->geom.x;
 		} else if (grab_gravity & EAST) {
 			b.width = (int)round(cursor->x) - grabc->geom.x;
 		}
 		if (grab_gravity & NORTH) {
 			b.y = (int)round(cursor->y);
-			b.height =
-				grabc->geom.y - (int)round(cursor->y) + grabc->geom.height;
-		} else if (grab_gravity & SOUTH) {
+                        b.height = grabc->geom.y - (int)round(cursor->y) + grabc->geom.height;
+			/* Prevent dragging the window up when size limit is reached */
+			if (b.y >= (int)(grabc->geom.y + grabc->geom.height - minheight - grabc->bw * 2))
+				b.y = grabc->geom.y;
+                } else if (grab_gravity & SOUTH) {
 			b.height = (int)round(cursor->y) - grabc->geom.y;
 		}
 		resize(grabc, b, 1);
@@ -2562,8 +2567,8 @@ resize(Client *c, struct wlr_box geo, int interact)
 	if (!c->mon || !c->scene)
 		return;
 
-	if (geo.width < 50) geo.width = 50;
-	if (geo.height < 50) geo.height = 50;
+	if (c->isfloating && geo.width < 50) geo.width = 50;
+	if (c->isfloating && geo.height < 50) geo.height = 50;
 	bbox = interact ? &sgeom : &c->mon->w;
 
 	client_set_bounds(c, geo.width, geo.height);
