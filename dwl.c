@@ -325,6 +325,7 @@ static void dwl_ipc_output_printstatus(Monitor *monitor);
 static void dwl_ipc_output_printstatus_to(DwlIpcOutput *ipc_output);
 static void dwl_ipc_output_set_client_tags(struct wl_client *client, struct wl_resource *resource, uint32_t and_tags, uint32_t xor_tags);
 static void dwl_ipc_output_set_layout(struct wl_client *client, struct wl_resource *resource, uint32_t index);
+static void dwl_ipc_output_set_mfact(struct wl_client *client, struct wl_resource *resource, wl_fixed_t mfact);
 static void dwl_ipc_output_set_tags(struct wl_client *client, struct wl_resource *resource, uint32_t tagmask, uint32_t toggle_tagset);
 static void dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource);
 static void focusclient(Client *c, int lift);
@@ -457,7 +458,7 @@ static struct wl_list mons;
 static Monitor *selmon;
 
 static struct zdwl_ipc_manager_v2_interface dwl_manager_implementation = {.release = dwl_ipc_manager_release, .get_output = dwl_ipc_manager_get_output};
-static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags};
+static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags, .set_mfact = dwl_ipc_output_set_mfact};
 
 #ifdef XWAYLAND
 static void activatex11(struct wl_listener *listener, void *data);
@@ -1593,6 +1594,25 @@ dwl_ipc_output_set_layout(struct wl_client *client, struct wl_resource *resource
 	monitor->lt[monitor->sellt] = &layouts[index];
 	arrange(monitor);
 	printstatus();
+}
+void
+dwl_ipc_output_set_mfact(struct wl_client *client, struct wl_resource *resource, wl_fixed_t mfact)
+{
+	DwlIpcOutput *ipc_output;
+	Monitor *monitor;
+	float mf;
+
+	ipc_output = wl_resource_get_user_data(resource);
+	if (!ipc_output)
+		return;
+
+	mf = (float)wl_fixed_to_double(mfact);
+	if (mf >= 0.05 && mf <= 0.95) {
+		monitor = ipc_output->mon;
+		monitor->mfact = mf;
+		arrange(monitor);
+		printstatus();
+	}
 }
 
 void
@@ -2936,7 +2956,7 @@ setup(void)
 	LISTEN_STATIC(&output_mgr->events.apply, outputmgrapply);
 	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
 
-	wl_global_create(dpy, &zdwl_ipc_manager_v2_interface, 2, NULL, dwl_ipc_manager_bind);
+	wl_global_create(dpy, &zdwl_ipc_manager_v2_interface, 3, NULL, dwl_ipc_manager_bind);
 
 	/* Make sure XWayland clients don't connect to the parent X server,
 	 * e.g when running in the x11 backend or the wayland backend and the
