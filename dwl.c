@@ -162,6 +162,8 @@ typedef struct {
 	unsigned int bw;
 	uint32_t tags;
 	int isfloating, isurgent, isfullscreen;
+	uint32_t resize_ms;
+	uint32_t last_resize;
 	uint32_t resize; /* configure serial of a pending resize */
 } Client;
 
@@ -697,6 +699,11 @@ buttonpress(struct wl_listener *listener, void *data)
 		/* If you released any buttons, we exit interactive move/resize mode. */
 		/* TODO should reset to the pointer focus's current setcursor */
 		if (!locked && cursor_mode != CurNormal && cursor_mode != CurPressed) {
+			if (cursor_mode == CurResize && grabc) {
+				grabc->last_resize = 0;
+				grabc->resize_ms = 0;
+				resize(grabc, grabc->geom, 1);
+			}
 			wlr_cursor_set_xcursor(cursor, cursor_mgr, "default");
 			cursor_mode = CurNormal;
 			/* Drop the window off on its new monitor */
@@ -2314,6 +2321,8 @@ moveresize(const Arg *arg)
 		wlr_cursor_set_xcursor(cursor, cursor_mgr, "fleur");
 		break;
 	case CurResize:
+		grabc->resize_ms = resize_debounce_ms;
+		grabc->last_resize = 0;
 		grabx = graby = 0;
 		grab_gravity = get_gravity(&grabx, &graby);
 		/* Doesn't work for X11 output - the next absolute motion event
@@ -2547,6 +2556,8 @@ resize(Client *c, struct wlr_box geo, int interact)
 {
 	struct wlr_box *bbox;
 	struct wlr_box clip;
+	struct timespec now;
+	uint32_t ms;
 
 	if (!c->mon || !c->scene)
 		return;
@@ -2570,9 +2581,14 @@ resize(Client *c, struct wlr_box geo, int interact)
 	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
 	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
 
-	/* this is a no-op if size hasn't changed */
-	c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
-			c->geom.height - 2 * c->bw);
+	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
+	ms = now.tv_sec * 1000 + now.tv_nsec / 1000000;
+	if (c->last_resize == 0 || ms - c->last_resize >= c->resize_ms) {
+		c->last_resize = ms;
+		/* this is a no-op if size hasn't changed */
+		c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
+			      c->geom.height - 2 * c->bw);
+	}
 	client_get_clip(c, &clip);
 	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
 }
