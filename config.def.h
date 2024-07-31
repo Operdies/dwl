@@ -6,6 +6,7 @@ static const unsigned int borderpx         = 1;  /* border pixel of windows */
 static const unsigned int resize_debounce_ms  = 40; /* how often are resize events sent to clients during drag-resizing */
 static const unsigned int minheight       = 50; /* minimum height of windows in pixels */
 static const unsigned int minwidth        = 50; /* minimum width of windows in pixels */
+static int gaps                           = 4;
 static const float *rootcolor             = colorschemes[colorscheme][CRUST];
 static const float *bordercolor           = colorschemes[colorscheme][OVERLAY0];
 static const float *focuscolor            = colorschemes[colorscheme][MAUVE];
@@ -150,6 +151,8 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_J,          movestack,      {.i = +1} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_K,          movestack,      {.i = -1} },
 	{ MODKEY,                    XKB_KEY_i,          incnmaster,     {.i = +1} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_I,          setgaps,        {.i = +1} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_O,          setgaps,        {.i = -1} },
 	{ MODKEY,                    XKB_KEY_o,          incnmaster,     {.i = -1} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_B,          toggleborders,  {0} },
 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },

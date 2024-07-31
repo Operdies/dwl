@@ -376,6 +376,7 @@ static void setfullscreen(Client *c, int fullscreen);
 static void setgamma(struct wl_listener *listener, void *data);
 static void setlayout(const Arg *arg);
 static void setffact(const Arg *arg);
+static void setgaps(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setmon(Client *c, Monitor *m, uint32_t newtags);
 static void setpsel(struct wl_listener *listener, void *data);
@@ -2627,24 +2628,41 @@ resize(Client *c, struct wlr_box geo, int interact)
 	c->geom = geo;
 	applybounds(c, bbox);
 
+	geo = c->geom;
+
+	if (!c->isfloating && !c->isfullscreen) {
+		geo.width -= gaps;
+		geo.height -= gaps;
+		if (c->geom.x == c->mon->w.x) {
+			geo.x += gaps;
+			geo.width -= gaps;
+		} 
+		if (c->geom.y == c->mon->w.y) {
+			geo.y += gaps;
+			geo.height -= gaps;
+		}
+
+		geo.width = MAX(1 + 2 * (int)c->bw, geo.width);
+		geo.height = MAX(1 + 2 * (int)c->bw, geo.height);
+	}
+
 	/* Update scene-graph, including borders */
-	wlr_scene_node_set_position(&c->scene->node, c->geom.x, c->geom.y);
+	wlr_scene_node_set_position(&c->scene->node, geo.x, geo.y);
 	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
-	wlr_scene_rect_set_size(c->border[0], c->geom.width, c->bw);
-	wlr_scene_rect_set_size(c->border[1], c->geom.width, c->bw);
-	wlr_scene_rect_set_size(c->border[2], c->bw, c->geom.height - 2 * c->bw);
-	wlr_scene_rect_set_size(c->border[3], c->bw, c->geom.height - 2 * c->bw);
-	wlr_scene_node_set_position(&c->border[1]->node, 0, c->geom.height - c->bw);
+	wlr_scene_rect_set_size(c->border[0], geo.width, c->bw);
+	wlr_scene_rect_set_size(c->border[1], geo.width, c->bw);
+	wlr_scene_rect_set_size(c->border[2], c->bw, geo.height - 2 * c->bw);
+	wlr_scene_rect_set_size(c->border[3], c->bw, geo.height - 2 * c->bw);
+	wlr_scene_node_set_position(&c->border[1]->node, 0, geo.height - c->bw);
 	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
-	wlr_scene_node_set_position(&c->border[3]->node, c->geom.width - c->bw, c->bw);
+	wlr_scene_node_set_position(&c->border[3]->node, geo.width - c->bw, c->bw);
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
 	ms = now.tv_sec * 1000 + now.tv_nsec / 1000000;
 	if (c->last_resize == 0 || ms - c->last_resize >= c->resize_ms) {
 		c->last_resize = ms;
 		/* this is a no-op if size hasn't changed */
-		c->resize = client_set_size(c, c->geom.width - 2 * c->bw,
-			      c->geom.height - 2 * c->bw);
+		c->resize = client_set_size(c, geo.width - 2 * c->bw, geo.height - 2 * c->bw);
 	}
 	client_get_clip(c, &clip);
 	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
@@ -2819,6 +2837,13 @@ setffact(const Arg *arg)
 		return;
 	selmon->ffact = f;
 	arrange(selmon);
+}
+
+void setgaps(const Arg *arg) {
+	gaps += arg->i;
+	if (gaps < 0) gaps = 0;
+	if (gaps > 64) gaps = 64;
+	updatemons(NULL, NULL);
 }
 
 /* arg > 1.0 will set mfact absolutely */
