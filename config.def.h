@@ -41,6 +41,7 @@ static const Layout layouts[] = {
 	{ "[M]",      monocle },
 	{ "[][D]",    deck },
 	{ "[][]",     doublestack },
+	{ "=[]=",     widefocus },
 };
 
 /* monitors */
@@ -153,6 +154,8 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_B,          toggleborders,  {0} },
 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
 	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_H,          setffact,       {.f = -0.05f} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_L,          setffact,       {.f = +0.05f} },
 	{ MODKEY,                    XKB_KEY_g,          zoom,           {0} },
 	{ MODKEY,                    XKB_KEY_Tab,        view,           {0} },
 	{ MODKEY,                    XKB_KEY_q,          killclient,     {0} },
@@ -161,6 +164,7 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_m,          setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[3]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[4]} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[5]} },
 	{ MODKEY,                    XKB_KEY_space,      setlayout,      {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
 	{ MODKEY,                    XKB_KEY_e,         togglefullscreen, {0} },

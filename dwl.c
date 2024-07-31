@@ -235,6 +235,7 @@ struct Monitor {
 	unsigned int seltags;
 	unsigned int sellt;
 	uint32_t tagset[2];
+	float ffact;
 	float mfact;
 	int gamma_lut_changed;
 	int nmaster;
@@ -374,6 +375,7 @@ static void setcursorshape(struct wl_listener *listener, void *data);
 static void setfloating(Client *c, int floating);
 static void setfullscreen(Client *c, int fullscreen);
 static void setlayout(const Arg *arg);
+static void setffact(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setmon(Client *c, Monitor *m, uint32_t newtags);
 static void setpsel(struct wl_listener *listener, void *data);
@@ -399,6 +401,7 @@ static void urgent(struct wl_listener *listener, void *data);
 static void view(const Arg *arg);
 static void virtualkeyboard(struct wl_listener *listener, void *data);
 static void virtualpointer(struct wl_listener *listener, void *data);
+static void widefocus(Monitor *m);
 static Monitor *xytomon(double x, double y);
 static void xytonode(double x, double y, struct wlr_surface **psurface,
 		Client **pc, LayerSurface **pl, double *nx, double *ny);
@@ -1072,6 +1075,7 @@ createmon(struct wl_listener *listener, void *data)
 			m->m.x = r->x;
 			m->m.y = r->y;
 			m->mfact = r->mfact;
+			m->ffact = r->mfact;
 			m->nmaster = r->nmaster;
 			m->lt[0] = r->lt;
 			m->lt[1] = &layouts[LENGTH(layouts) > 1 && r->lt != &layouts[1]];
@@ -2764,6 +2768,21 @@ setlayout(const Arg *arg)
 	printstatus();
 }
 
+/* arg > 1.0 will set ffact absolutely */
+void
+setffact(const Arg *arg)
+{
+	float f;
+
+	if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange)
+		return;
+	f = arg->f < 1.0f ? arg->f + selmon->ffact : arg->f - 1.0f;
+	if (f < 0.1 || f > 0.9)
+		return;
+	selmon->ffact = f;
+	arrange(selmon);
+}
+
 /* arg > 1.0 will set mfact absolutely */
 void
 setmfact(const Arg *arg)
@@ -3402,6 +3421,43 @@ virtualpointer(struct wl_listener *listener, void *data)
 	wlr_cursor_attach_input_device(cursor, device);
 	if (event->suggested_output)
 		wlr_cursor_map_input_to_output(cursor, device, event->suggested_output);
+}
+
+void
+widefocus(Monitor *m)
+{
+	unsigned int lw, my, ty, mw, rw;
+	int i, n, nmaster;
+	Client *c;
+
+	n = i = my = ty = 0;
+	wl_list_for_each(c, &clients, link)
+		if (VISIBLEON(c, m) && !c->isfloating && !c->isfullscreen)
+			n++;
+	if (n == 0)
+		return;
+
+	mw = (int)roundf(m->w.width * m->mfact);
+	lw = (int)roundf((m->w.width - mw) * m->ffact);
+	rw = m->w.width - mw - lw;
+
+	nmaster = m->nmaster + 1; // The master stacking area is offset by one
+	wl_list_for_each(c, &clients, link) {
+		if (!VISIBLEON(c, m) || c->isfloating || c->isfullscreen)
+			continue;
+		if (i == 0) {
+			resize(c, (struct wlr_box){.x = m->w.x + lw, .y = m->w.y, .width = mw, .height = m->w.height}, 0);
+		} else if (i < nmaster) {
+			resize(c, (struct wlr_box){.x = m->w.x, .y = m->w.y + my, .width = lw,
+				.height = (m->w.height - my) / (MIN(n, nmaster) - i)}, 0);
+			my += c->geom.height;
+		} else {
+			resize(c, (struct wlr_box){.x = m->w.x + lw + mw, .y = m->w.y + ty,
+				.width = rw, .height = (m->w.height - ty) / (n - i)}, 0);
+			ty += c->geom.height;
+		}
+		i++;
+	}
 }
 
 Monitor *
