@@ -332,6 +332,8 @@ static void dwl_ipc_output_set_layout(struct wl_client *client, struct wl_resour
 static void dwl_ipc_output_set_mfact(struct wl_client *client, struct wl_resource *resource, wl_fixed_t mfact);
 static void dwl_ipc_output_set_tags(struct wl_client *client, struct wl_resource *resource, uint32_t tagmask, uint32_t toggle_tagset);
 static void dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource);
+static void expandffactleft(const Arg *arg);
+static void expandffactright(const Arg *arg);
 static void focusclient(Client *c, int lift);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
@@ -1699,6 +1701,37 @@ void
 dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource)
 {
 	wl_resource_destroy(resource);
+}
+
+static void expandfact(const Arg *arg, int invert) {
+  float f, ff, width;
+  if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange)
+    return;
+  f = arg->f < 1.0f ? arg->f + selmon->mfact : arg->f - 1.0f;
+  if (f < 0.1 || f > 0.9)
+    return;
+
+  // Calculate the current pixel width of the stacking area and calculate the new
+  // stacking area ratio to preserve that pixel width
+  width = roundf(selmon->w.width * (1.0f - selmon->mfact) * (invert ? 1.0f - selmon->ffact : selmon->ffact));
+  ff = width / ((float)selmon->w.width * (1.0f - f));
+  if (invert)
+    ff = 1.0f - ff;
+
+  if (ff < 0.1 || ff > 0.9)
+    return;
+
+  selmon->mfact = f;
+  selmon->ffact = ff;
+  arrange(selmon);
+}
+
+static void expandffactleft(const Arg *arg) {
+  expandfact(arg, 1);
+}
+
+static void expandffactright(const Arg *arg) {
+  expandfact(arg, 0);
 }
 
 void

@@ -137,7 +137,6 @@ static const char *menucmd[] = { "rofi", "-show", "drun", NULL };
 static const char *whichkeycmd[] = { "wlr-which-key", NULL };
 static const char *powermenucmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/power.yaml", NULL };
 
-
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
 	/* modifier                  key                 function        argument */
@@ -155,6 +154,10 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_O,          setgaps,        {.i = -1} },
 	{ MODKEY,                    XKB_KEY_o,          incnmaster,     {.i = -1} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_B,          toggleborders,  {0} },
+	{ MODKEY,                    XKB_KEY_n,         expandffactright,{.f = +0.05f} },
+	{ MODKEY,                    XKB_KEY_m,         expandffactright,{.f = -0.05f} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_M,         expandffactleft, {.f = +0.05f} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_N,         expandffactleft, {.f = -0.05f} },
 	{ MODKEY,                    XKB_KEY_h,          setmfact,       {.f = -0.05f} },
 	{ MODKEY,                    XKB_KEY_l,          setmfact,       {.f = +0.05f} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_H,          setffact,       {.f = -0.05f} },
@@ -165,7 +168,6 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_q,          killclient,     {0} },
 	{ MODKEY,                    XKB_KEY_t,          setlayout,      {.v = &layouts[0]} },
 	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                    XKB_KEY_m,          setlayout,      {.v = &layouts[2]} },
 	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[3]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[4]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[5]} },
