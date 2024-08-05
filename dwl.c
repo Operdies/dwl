@@ -384,6 +384,7 @@ static void setsel(struct wl_listener *listener, void *data);
 static void setup(void);
 static void spawn(const Arg *arg);
 static void startdrag(struct wl_listener *listener, void *data);
+static void swapmaster(const Arg *arg);
 static void tag(const Arg *arg);
 static void tagmon(const Arg *arg);
 static void tile(Monitor *m);
@@ -3149,6 +3150,56 @@ startdrag(struct wl_listener *listener, void *data)
 
 	drag->icon->data = &wlr_scene_drag_icon_create(drag_icon, drag->icon)->node;
 	LISTEN_STATIC(&drag->icon->events.destroy, destroydragicon);
+}
+
+void
+swapmaster(const Arg *arg)
+{
+	// Track the previously swapped window to swap back if master was selected
+	static Client *lastswap = NULL;
+	Client *master, *sel = focustop(selmon);
+
+	if (!sel || !selmon || !selmon->lt[selmon->sellt]->arrange || sel->isfloating)
+		return;
+
+	// find the first tiled window
+	wl_list_for_each(master, &clients, link) {
+		if (VISIBLEON(master, selmon) && !master->isfloating) {
+			break;
+		}
+	}
+
+	if (master == sel && master != lastswap && lastswap) {
+		// Try to find the previous swap in the client list
+		wl_list_for_each(sel, &clients, link) {
+			if (VISIBLEON(sel, selmon) && !sel->isfloating && sel == lastswap) {
+				break;
+			}
+		}
+		// If no match, find the first tiled window that isn't master
+		if (&sel->link == &clients || master == sel) {
+			wl_list_for_each(sel, &clients, link) {
+				if (VISIBLEON(sel, selmon) && !sel->isfloating && sel != master) {
+					break;
+				}
+			}
+		}
+	}
+
+	if (&master->link == &clients || &sel->link == &clients || master == sel)
+		return;
+
+	// Insert master after sel
+	wl_list_remove(&master->link);
+	wl_list_insert(&sel->link, &master->link);
+
+	// Make sel the new master
+	wl_list_remove(&sel->link);
+	wl_list_insert(&clients, &sel->link);
+
+	focusclient(sel, 1);
+	arrange(selmon);
+	lastswap = master;
 }
 
 void
