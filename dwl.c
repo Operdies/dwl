@@ -1837,6 +1837,11 @@ focusstack(const Arg *arg)
 			if (VISIBLEON(c, selmon))
 				break; /* found it */
 		}
+	} else if (arg->i == 0) {
+		wl_list_for_each(c, &clients, link) {
+			if (VISIBLEON(c, selmon) && !c->isfloating)
+				break; /* found it */
+		}
 	} else {
 		wl_list_for_each_reverse(c, &sel->link, link) {
 			if (&c->link == &clients)
@@ -1846,7 +1851,8 @@ focusstack(const Arg *arg)
 		}
 	}
 	/* If only one client is visible on selmon, then c == sel */
-	focusclient(c, 1);
+	if (c && &c->link != &clients)
+		focusclient(c, 1);
 }
 
 /* We probably should change the name of this, it sounds like
