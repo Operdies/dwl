@@ -20,14 +20,16 @@ MODKEY ?= LOGO
 DWLCFLAGS += -DMODKEY=WLR_MODIFIER_$(MODKEY)
 
 all: dwl
-dwl: dwl.o util.o dwl-ipc-unstable-v2-protocol.o
-	$(CC) dwl.o util.o dwl-ipc-unstable-v2-protocol.o $(DWLCFLAGS) $(LDFLAGS) $(LDLIBS) -o $@
+dwl: dwl.o util.o dwl-ipc-unstable-v2-protocol.o blur-protocol.o
+	$(CC) dwl.o util.o dwl-ipc-unstable-v2-protocol.o blur-protocol.o $(DWLCFLAGS) $(LDFLAGS) $(LDLIBS) -o $@
 dwl.o: dwl.c client.h config.h config.mk cursor-shape-v1-protocol.h \
 	pointer-constraints-unstable-v1-protocol.h wlr-layer-shell-unstable-v1-protocol.h \
 	wlr-output-power-management-unstable-v1-protocol.h xdg-shell-protocol.h \
-	dwl-ipc-unstable-v2-protocol.h
+	dwl-ipc-unstable-v2-protocol.h \
+	blur-protocol.h
 util.o: util.c util.h
 dwl-ipc-unstable-v2-protocol.o: dwl-ipc-unstable-v2-protocol.c dwl-ipc-unstable-v2-protocol.h
+blur-protocol.o : blur-protocol.c blur-protocol.h
 
 # wayland-scanner is a tool which generates C headers and rigging for Wayland
 # protocols, which are specified in XML. wlroots requires you to rig these up
@@ -56,6 +58,12 @@ dwl-ipc-unstable-v2-protocol.h:
 dwl-ipc-unstable-v2-protocol.c:
 	$(WAYLAND_SCANNER) private-code \
 		protocols/dwl-ipc-unstable-v2.xml $@
+blur-protocol.h:
+	$(WAYLAND_SCANNER) server-header \
+		protocols/blur.xml $@
+blur-protocol.c:
+	$(WAYLAND_SCANNER) private-code \
+		protocols/blur.xml $@
 
 config.h:
 	cp config.def.h $@

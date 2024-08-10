@@ -1,6 +1,7 @@
 /*
  * See LICENSE file for copyright and license details.
  */
+#include "blur-protocol.h"
 #include <getopt.h>
 #include <libinput.h>
 #include <linux/input-event-codes.h>
@@ -491,6 +492,9 @@ static xcb_atom_t netatom[NetLast];
 
 /* attempt to encapsulate suck into one file */
 #include "client.h"
+
+/* encapsulate blur implementation in separate file */
+#include "blur.h"
 
 /* function implementations */
 void
@@ -3149,6 +3153,8 @@ setup(void)
 	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
 
 	wl_global_create(dpy, &zdwl_ipc_manager_v2_interface, 3, NULL, dwl_ipc_manager_bind);
+
+	wl_global_create(dpy, &org_kde_kwin_blur_manager_interface, 1, NULL, blur_manager_bind);
 
 	/* Make sure XWayland clients don't connect to the parent X server,
 	 * e.g when running in the x11 backend or the wayland backend and the
