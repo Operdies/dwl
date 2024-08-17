@@ -20,6 +20,9 @@ do_startup() {
   start_sway_idle &
   wmname LG3D & # java fix v2 -- needs to run after the compository has started
   kwalletd6 &
+  # clipboard data is synchronized directly between wayland clients.
+  # To persist the clipboard when an application is closed, we use a clipboard manager.
+  wl-paste -t text --watch clipman store & 
 }
 
 do_launch() {
@@ -27,6 +30,7 @@ do_launch() {
   # Primarily for ghidra and jebtrains IDEs
   export _JAVA_AWT_WM_NONREPARENTING=1
   export AWT_TOOLKIT=MToolkit
+  export XDG_CURRENT_DESKTOP=dwl
   # Create a dbus session. This is primarily needed for kwallet
   export $(dbus-launch)
   "$HOME/repos/dwl/dwl" -s "$0 startup"
