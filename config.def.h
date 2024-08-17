@@ -34,15 +34,17 @@ static const Rule rules[] = {
 	{ "org.pulseaudio.pavucontrol", NULL, 0,        1,           -1 },
 };
 
+enum { _WIDEFOCUS, _TILE, _MONOCLE, _DECK, _DOUBLESTACK, _FLOATING };
+
 /* layout(s) */
 static const Layout layouts[] = {
 	/* symbol     arrange function */
+	{ "=[]=",     widefocus },
 	{ "[]=",      tile },
-	{ "><>",      NULL },    /* no layout function means floating behavior */
 	{ "[M]",      monocle },
 	{ "[][D]",    deck },
 	{ "[][]",     doublestack },
-	{ "=[]=",     widefocus },
+	{ "><>",      NULL },    /* no layout function means floating behavior */
 };
 
 /* monitors */
@@ -169,11 +171,11 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_G,          zoom,           {0} },
 	{ MODKEY,                    XKB_KEY_Tab,        view,           {0} },
 	{ MODKEY,                    XKB_KEY_q,          killclient,     {0} },
-	{ MODKEY,                    XKB_KEY_t,          setlayout,      {.v = &layouts[0]} },
-	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[1]} },
-	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[3]} },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[4]} },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[5]} },
+	{ MODKEY,                    XKB_KEY_t,          setlayout,      {.v = &layouts[_TILE]} },
+	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[_FLOATING]} },
+	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[_DECK]} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[_DOUBLESTACK]} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[_WIDEFOCUS]} },
 	{ MODKEY,                    XKB_KEY_space,   togglesloppyfocus, {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
 	{ MODKEY,                    XKB_KEY_e,        togglefullscreen, {0} },
