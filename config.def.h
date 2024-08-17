@@ -1,6 +1,6 @@
 #include "colorscheme.h"
 /* appearance */
-static const int sloppyfocus               = 1;  /* focus follows mouse */
+static int sloppyfocus                     = 1;  /* focus follows mouse */
 static const int bypass_surface_visibility = 0;  /* 1 means idle inhibitors will disable idle tracking even if it's surface isn't visible  */
 static const unsigned int borderpx         = 1;  /* border pixel of windows */
 static const unsigned int resize_debounce_ms  = 40; /* how often are resize events sent to clients during drag-resizing */
@@ -172,7 +172,7 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[3]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[4]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[5]} },
-	{ MODKEY,                    XKB_KEY_space,      setlayout,      {0} },
+	{ MODKEY,                    XKB_KEY_space,   togglesloppyfocus, {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
 	{ MODKEY,                    XKB_KEY_e,         togglefullscreen, {0} },
 	{ MODKEY,                    XKB_KEY_0,          view,           {.ui = ~0} },

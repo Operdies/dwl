@@ -394,6 +394,7 @@ static void toggleborders(const Arg* arg);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
 static void togglefullscreen(const Arg *arg);
+static void togglesloppyfocus(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unlocksession(struct wl_listener *listener, void *data);
@@ -3294,6 +3295,12 @@ togglefullscreen(const Arg *arg)
 	Client *sel = focustop(selmon);
 	if (sel)
 		setfullscreen(sel, !sel->isfullscreen);
+}
+
+void
+togglesloppyfocus(const Arg *arg)
+{
+	sloppyfocus = !sloppyfocus;
 }
 
 void
