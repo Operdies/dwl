@@ -25,7 +25,7 @@ static const Rule rules[] = {
 	/* app_id             title       tags mask     isfloating   monitor */
 	/* examples: */
 	{ "Gimp_EXAMPLE",     NULL,       0,            1,           -1 }, /* Start on currently visible tags floating, not tiled */
-	{ "firefox",          NULL,       1 << 3,       0,           -1 },
+	/* { "firefox",          NULL,       1 << 3,       0,           -1 }, */
 	{ "discord",          NULL,       1 << 2,       0,           -1 },
 	{ "steam",            NULL,       1 << 8,       0,           -1 },
 	{ "ffxiv_dx11.exe",   NULL,       ~0,           0,           -1 },
