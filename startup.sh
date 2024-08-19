@@ -1,8 +1,8 @@
 #!/bin/env bash
 
 start_sway_idle() {
-  session_lock=120
-  suspend=300
+  session_lock=600
+  suspend=1800
   swayidle -w \
     timeout $session_lock 'swaylock -f' \
     timeout $suspend 'systemctl suspend' \
