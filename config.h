@@ -1,3 +1,8 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#include "dwl.h"
+
 #include "colorscheme.h"
 /* appearance */
 static int sloppyfocus                     = 1;  /* focus follows mouse */
@@ -212,3 +217,5 @@ static const Button buttons[] = {
 	{ MODKEY, BTN_MIDDLE, togglefloating, {0} },
 	{ MODKEY, BTN_RIGHT,  moveresize,     {.ui = CurResize} },
 };
+
+#endif //  CONFIG_H
