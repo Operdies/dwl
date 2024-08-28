@@ -1,3 +1,8 @@
+#ifndef CLIENT_H
+#define CLIENT_H
+
+#include "dwl.h"
+
 /*
  * Attempt to consolidate unavoidable suck into one file, away from dwl.c.  This
  * file is not meant to be pretty.  We use a .h file with static inline
@@ -406,3 +411,5 @@ client_wants_fullscreen(Client *c)
 #endif
 	return c->surface.xdg->toplevel->requested.fullscreen;
 }
+
+#endif //  CLIENT_H

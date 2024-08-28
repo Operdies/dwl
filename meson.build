@@ -15,8 +15,11 @@ add_project_arguments(
 	[
 		'-DWLR_USE_UNSTABLE',
 		'-D_POSIX_C_SOURCE=200809L',
+		'-DXWAYLAND',
 
+		'-Wno-undefined-internal',
 		'-Wno-unused-parameter',
+		'-Wno-unused-function',
 		'-Wno-unused-result',
 		'-Wno-missing-braces',
 		'-Wno-format-zero-length',
