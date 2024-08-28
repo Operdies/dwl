@@ -63,9 +63,6 @@
 #include <xcb/xcb_icccm.h>
 #endif
 
-#include "dwl-ipc-unstable-v2-protocol.h"
-#include "util.h"
-
 /* macros */
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
@@ -271,215 +268,153 @@ typedef struct {
 } SessionLock;
 
 /* function declarations */
-static void applybounds(Client *c, struct wlr_box *bbox);
-static void applyrules(Client *c);
-static void arrange(Monitor *m);
-static void arrangelayer(Monitor *m, struct wl_list *list,
+void applybounds(Client *c, struct wlr_box *bbox);
+void applyrules(Client *c);
+void arrange(Monitor *m);
+void arrangelayer(Monitor *m, struct wl_list *list,
 		struct wlr_box *usable_area, int exclusive);
-static void arrangelayers(Monitor *m);
-static void axisnotify(struct wl_listener *listener, void *data);
-static void buttonpress(struct wl_listener *listener, void *data);
-static void chvt(const Arg *arg);
-static void checkidleinhibitor(struct wlr_surface *exclude);
-static void cleanup(void);
-static void cleanupmon(struct wl_listener *listener, void *data);
-static void closemon(Monitor *m);
-static void commitlayersurfacenotify(struct wl_listener *listener, void *data);
-static void commitnotify(struct wl_listener *listener, void *data);
-static void commitpopup(struct wl_listener *listener, void *data);
-static void createdecoration(struct wl_listener *listener, void *data);
-static void createidleinhibitor(struct wl_listener *listener, void *data);
-static void createkeyboard(struct wlr_keyboard *keyboard);
-static KeyboardGroup *createkeyboardgroup(void);
-static void createlayersurface(struct wl_listener *listener, void *data);
-static void createlocksurface(struct wl_listener *listener, void *data);
-static void createmon(struct wl_listener *listener, void *data);
-static void createnotify(struct wl_listener *listener, void *data);
-static void createpointer(struct wlr_pointer *pointer);
-static void createpointerconstraint(struct wl_listener *listener, void *data);
-static void createpopup(struct wl_listener *listener, void *data);
-static void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
-static void cursorframe(struct wl_listener *listener, void *data);
-static void cursorwarptohint(void);
-static void deck(Monitor *m);
-static void destroydecoration(struct wl_listener *listener, void *data);
-static void destroydragicon(struct wl_listener *listener, void *data);
-static void destroyidleinhibitor(struct wl_listener *listener, void *data);
-static void destroylayersurfacenotify(struct wl_listener *listener, void *data);
-static void destroylock(SessionLock *lock, int unlocked);
-static void destroylocksurface(struct wl_listener *listener, void *data);
-static void destroynotify(struct wl_listener *listener, void *data);
-static void destroypointerconstraint(struct wl_listener *listener, void *data);
-static void destroysessionlock(struct wl_listener *listener, void *data);
-static void destroysessionmgr(struct wl_listener *listener, void *data);
-static void destroykeyboardgroup(struct wl_listener *listener, void *data);
-static Monitor *dirtomon(enum wlr_direction dir);
-static void doublestack(Monitor *m);
-static void dwl_ipc_manager_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id);
-static void dwl_ipc_manager_destroy(struct wl_resource *resource);
-static void dwl_ipc_manager_get_output(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *output);
-static void dwl_ipc_manager_release(struct wl_client *client, struct wl_resource *resource);
-static void dwl_ipc_output_destroy(struct wl_resource *resource);
-static void dwl_ipc_output_printstatus(Monitor *monitor);
-static void dwl_ipc_output_printstatus_to(DwlIpcOutput *ipc_output);
-static void dwl_ipc_output_set_client_tags(struct wl_client *client, struct wl_resource *resource, uint32_t and_tags, uint32_t xor_tags);
-static void dwl_ipc_output_set_layout(struct wl_client *client, struct wl_resource *resource, uint32_t index);
-static void dwl_ipc_output_set_mfact(struct wl_client *client, struct wl_resource *resource, wl_fixed_t mfact);
-static void dwl_ipc_output_set_tags(struct wl_client *client, struct wl_resource *resource, uint32_t tagmask, uint32_t toggle_tagset);
-static void dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource);
-static void expandffactleft(const Arg *arg);
-static void expandffactright(const Arg *arg);
-static void focusclient(Client *c, int lift);
-static void focusmon(const Arg *arg);
-static void focusstack(const Arg *arg);
-static Client *focustop(Monitor *m);
-static void fullscreennotify(struct wl_listener *listener, void *data);
-static void gpureset(struct wl_listener *listener, void *data);
-static void handlesig(int signo);
-static void incnmaster(const Arg *arg);
-static void inputdevice(struct wl_listener *listener, void *data);
-static int keybinding(uint32_t mods, xkb_keysym_t sym);
-static void keypress(struct wl_listener *listener, void *data);
-static void keypressmod(struct wl_listener *listener, void *data);
-static int keyrepeat(void *data);
-static void killclient(const Arg *arg);
-static void locksession(struct wl_listener *listener, void *data);
-static void mapnotify(struct wl_listener *listener, void *data);
-static void maximizenotify(struct wl_listener *listener, void *data);
-static void monocle(Monitor *m);
-static void movestack(const Arg *arg);
-static void motionabsolute(struct wl_listener *listener, void *data);
-static void motionnotify(uint32_t time, struct wlr_input_device *device, double sx,
+void arrangelayers(Monitor *m);
+void axisnotify(struct wl_listener *listener, void *data);
+void buttonpress(struct wl_listener *listener, void *data);
+void chvt(const Arg *arg);
+void checkidleinhibitor(struct wlr_surface *exclude);
+void cleanup(void);
+void cleanupmon(struct wl_listener *listener, void *data);
+void closemon(Monitor *m);
+void commitlayersurfacenotify(struct wl_listener *listener, void *data);
+void commitnotify(struct wl_listener *listener, void *data);
+void commitpopup(struct wl_listener *listener, void *data);
+void createdecoration(struct wl_listener *listener, void *data);
+void createidleinhibitor(struct wl_listener *listener, void *data);
+void createkeyboard(struct wlr_keyboard *keyboard);
+KeyboardGroup *createkeyboardgroup(void);
+void createlayersurface(struct wl_listener *listener, void *data);
+void createlocksurface(struct wl_listener *listener, void *data);
+void createmon(struct wl_listener *listener, void *data);
+void createnotify(struct wl_listener *listener, void *data);
+void createpointer(struct wlr_pointer *pointer);
+void createpointerconstraint(struct wl_listener *listener, void *data);
+void createpopup(struct wl_listener *listener, void *data);
+void cursorconstrain(struct wlr_pointer_constraint_v1 *constraint);
+void cursorframe(struct wl_listener *listener, void *data);
+void cursorwarptohint(void);
+void deck(Monitor *m);
+void destroydecoration(struct wl_listener *listener, void *data);
+void destroydragicon(struct wl_listener *listener, void *data);
+void destroyidleinhibitor(struct wl_listener *listener, void *data);
+void destroylayersurfacenotify(struct wl_listener *listener, void *data);
+void destroylock(SessionLock *lock, int unlocked);
+void destroylocksurface(struct wl_listener *listener, void *data);
+void destroynotify(struct wl_listener *listener, void *data);
+void destroypointerconstraint(struct wl_listener *listener, void *data);
+void destroysessionlock(struct wl_listener *listener, void *data);
+void destroysessionmgr(struct wl_listener *listener, void *data);
+void destroykeyboardgroup(struct wl_listener *listener, void *data);
+Monitor *dirtomon(enum wlr_direction dir);
+void doublestack(Monitor *m);
+void dwl_ipc_manager_bind(struct wl_client *client, void *data, uint32_t version, uint32_t id);
+void dwl_ipc_manager_destroy(struct wl_resource *resource);
+void dwl_ipc_manager_get_output(struct wl_client *client, struct wl_resource *resource, uint32_t id, struct wl_resource *output);
+void dwl_ipc_manager_release(struct wl_client *client, struct wl_resource *resource);
+void dwl_ipc_output_destroy(struct wl_resource *resource);
+void dwl_ipc_output_printstatus(Monitor *monitor);
+void dwl_ipc_output_printstatus_to(DwlIpcOutput *ipc_output);
+void dwl_ipc_output_set_client_tags(struct wl_client *client, struct wl_resource *resource, uint32_t and_tags, uint32_t xor_tags);
+void dwl_ipc_output_set_layout(struct wl_client *client, struct wl_resource *resource, uint32_t index);
+void dwl_ipc_output_set_mfact(struct wl_client *client, struct wl_resource *resource, wl_fixed_t mfact);
+void dwl_ipc_output_set_tags(struct wl_client *client, struct wl_resource *resource, uint32_t tagmask, uint32_t toggle_tagset);
+void dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource);
+void expandffactleft(const Arg *arg);
+void expandffactright(const Arg *arg);
+void focusclient(Client *c, int lift);
+void focusmon(const Arg *arg);
+void focusstack(const Arg *arg);
+Client *focustop(Monitor *m);
+void fullscreennotify(struct wl_listener *listener, void *data);
+void gpureset(struct wl_listener *listener, void *data);
+void handlesig(int signo);
+void incnmaster(const Arg *arg);
+void inputdevice(struct wl_listener *listener, void *data);
+int keybinding(uint32_t mods, xkb_keysym_t sym);
+void keypress(struct wl_listener *listener, void *data);
+void keypressmod(struct wl_listener *listener, void *data);
+int keyrepeat(void *data);
+void killclient(const Arg *arg);
+void locksession(struct wl_listener *listener, void *data);
+void mapnotify(struct wl_listener *listener, void *data);
+void maximizenotify(struct wl_listener *listener, void *data);
+void monocle(Monitor *m);
+void movestack(const Arg *arg);
+void motionabsolute(struct wl_listener *listener, void *data);
+void motionnotify(uint32_t time, struct wlr_input_device *device, double sx,
 		double sy, double sx_unaccel, double sy_unaccel);
-static void motionrelative(struct wl_listener *listener, void *data);
-static void moveresize(const Arg *arg);
-static void outputmgrapply(struct wl_listener *listener, void *data);
-static void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int test);
-static void outputmgrtest(struct wl_listener *listener, void *data);
-static void pointerfocus(Client *c, struct wlr_surface *surface,
+void motionrelative(struct wl_listener *listener, void *data);
+void moveresize(const Arg *arg);
+void outputmgrapply(struct wl_listener *listener, void *data);
+void outputmgrapplyortest(struct wlr_output_configuration_v1 *config, int test);
+void outputmgrtest(struct wl_listener *listener, void *data);
+void pointerfocus(Client *c, struct wlr_surface *surface,
 		double sx, double sy, uint32_t time);
-static void printstatus(void);
-static void powermgrsetmode(struct wl_listener *listener, void *data);
-static void quit(const Arg *arg);
-static void rendermon(struct wl_listener *listener, void *data);
-static void requestdecorationmode(struct wl_listener *listener, void *data);
-static void requeststartdrag(struct wl_listener *listener, void *data);
-static void requestmonstate(struct wl_listener *listener, void *data);
-static void resize(Client *c, struct wlr_box geo, int interact);
-static void run(char *startup_cmd);
-static void setcursor(struct wl_listener *listener, void *data);
-static void setcursorshape(struct wl_listener *listener, void *data);
-static void setfloating(Client *c, int floating);
-static void setfullscreen(Client *c, int fullscreen);
-static void setlayout(const Arg *arg);
-static void setffact(const Arg *arg);
-static void setgaps(const Arg *arg);
-static void setmfact(const Arg *arg);
-static void setmon(Client *c, Monitor *m, uint32_t newtags);
-static void setpsel(struct wl_listener *listener, void *data);
-static void setsel(struct wl_listener *listener, void *data);
-static void setup(void);
-static void spawn(const Arg *arg);
-static void startdrag(struct wl_listener *listener, void *data);
-static void swapmaster(const Arg *arg);
-static void tag(const Arg *arg);
-static void tagmon(const Arg *arg);
-static void tile(Monitor *m);
-static void toggleborders(const Arg* arg);
-static void togglebar(const Arg *arg);
-static void togglefloating(const Arg *arg);
-static void togglefullscreen(const Arg *arg);
-static void togglesloppyfocus(const Arg *arg);
-static void toggletag(const Arg *arg);
-static void toggleview(const Arg *arg);
-static void unlocksession(struct wl_listener *listener, void *data);
-static void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
-static void unmapnotify(struct wl_listener *listener, void *data);
-static void updatemons(struct wl_listener *listener, void *data);
-static void updatetitle(struct wl_listener *listener, void *data);
-static void urgent(struct wl_listener *listener, void *data);
-static void view(const Arg *arg);
-static void virtualkeyboard(struct wl_listener *listener, void *data);
-static void virtualpointer(struct wl_listener *listener, void *data);
-static void widefocus(Monitor *m);
-static Monitor *xytomon(double x, double y);
-static void xytonode(double x, double y, struct wlr_surface **psurface,
+void printstatus(void);
+void powermgrsetmode(struct wl_listener *listener, void *data);
+void quit(const Arg *arg);
+void rendermon(struct wl_listener *listener, void *data);
+void requestdecorationmode(struct wl_listener *listener, void *data);
+void requeststartdrag(struct wl_listener *listener, void *data);
+void requestmonstate(struct wl_listener *listener, void *data);
+void resize(Client *c, struct wlr_box geo, int interact);
+void run(char *startup_cmd);
+void setcursor(struct wl_listener *listener, void *data);
+void setcursorshape(struct wl_listener *listener, void *data);
+void setfloating(Client *c, int floating);
+void setfullscreen(Client *c, int fullscreen);
+void setlayout(const Arg *arg);
+void setffact(const Arg *arg);
+void setgaps(const Arg *arg);
+void setmfact(const Arg *arg);
+void setmon(Client *c, Monitor *m, uint32_t newtags);
+void setpsel(struct wl_listener *listener, void *data);
+void setsel(struct wl_listener *listener, void *data);
+void setup(void);
+void spawn(const Arg *arg);
+void startdrag(struct wl_listener *listener, void *data);
+void swapmaster(const Arg *arg);
+void tag(const Arg *arg);
+void tagmon(const Arg *arg);
+void tile(Monitor *m);
+void toggleborders(const Arg* arg);
+void togglebar(const Arg *arg);
+void togglefloating(const Arg *arg);
+void togglefullscreen(const Arg *arg);
+void togglesloppyfocus(const Arg *arg);
+void toggletag(const Arg *arg);
+void toggleview(const Arg *arg);
+void unlocksession(struct wl_listener *listener, void *data);
+void unmaplayersurfacenotify(struct wl_listener *listener, void *data);
+void unmapnotify(struct wl_listener *listener, void *data);
+void updatemons(struct wl_listener *listener, void *data);
+void updatetitle(struct wl_listener *listener, void *data);
+void urgent(struct wl_listener *listener, void *data);
+void view(const Arg *arg);
+void virtualkeyboard(struct wl_listener *listener, void *data);
+void virtualpointer(struct wl_listener *listener, void *data);
+void widefocus(Monitor *m);
+Monitor *xytomon(double x, double y);
+void xytonode(double x, double y, struct wlr_surface **psurface,
 		Client **pc, LayerSurface **pl, double *nx, double *ny);
-static void zoom(const Arg *arg);
-
-/* variables */
-static pid_t child_pid = -1;
-static int locked;
-static void *exclusive_focus;
-static struct wl_display *dpy;
-static struct wl_event_loop *event_loop;
-static struct wlr_backend *backend;
-static struct wlr_scene *scene;
-static struct wlr_scene_tree *layers[NUM_LAYERS];
-static struct wlr_scene_tree *drag_icon;
-/* Map from ZWLR_LAYER_SHELL_* constants to Lyr* enum */
-static const int layermap[] = { LyrBg, LyrBottom, LyrTop, LyrOverlay };
-static struct wlr_renderer *drw;
-static struct wlr_allocator *alloc;
-static struct wlr_compositor *compositor;
-static struct wlr_session *session;
-
-static struct wlr_xdg_shell *xdg_shell;
-static struct wlr_xdg_activation_v1 *activation;
-static struct wlr_xdg_decoration_manager_v1 *xdg_decoration_mgr;
-static struct wl_list clients; /* tiling order */
-static struct wl_list fstack;  /* focus order */
-static struct wlr_idle_notifier_v1 *idle_notifier;
-static struct wlr_idle_inhibit_manager_v1 *idle_inhibit_mgr;
-static struct wlr_layer_shell_v1 *layer_shell;
-static struct wlr_output_manager_v1 *output_mgr;
-static struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard_mgr;
-static struct wlr_virtual_pointer_manager_v1 *virtual_pointer_mgr;
-static struct wlr_cursor_shape_manager_v1 *cursor_shape_mgr;
-static struct wlr_output_power_manager_v1 *power_mgr;
-
-static struct wlr_pointer_constraints_v1 *pointer_constraints;
-static struct wlr_relative_pointer_manager_v1 *relative_pointer_mgr;
-static struct wlr_pointer_constraint_v1 *active_constraint;
-
-static struct wlr_cursor *cursor;
-static struct wlr_xcursor_manager *cursor_mgr;
-
-static struct wlr_scene_rect *root_bg;
-static struct wlr_session_lock_manager_v1 *session_lock_mgr;
-static struct wlr_scene_rect *locked_bg;
-static struct wlr_session_lock_v1 *cur_lock;
-static struct wl_listener lock_listener = {.notify = locksession};
-
-static struct wlr_seat *seat;
-static KeyboardGroup *kb_group;
-static unsigned int cursor_mode;
-static uint32_t grab_gravity;
-static Client *grabc;
-static int grabcx, grabcy; /* client-relative */
-
-static struct wlr_output_layout *output_layout;
-static struct wlr_box sgeom;
-static struct wl_list mons;
-static Monitor *selmon;
-
-static struct zdwl_ipc_manager_v2_interface dwl_manager_implementation = {.release = dwl_ipc_manager_release, .get_output = dwl_ipc_manager_get_output};
-static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags, .set_mfact = dwl_ipc_output_set_mfact};
+void zoom(const Arg *arg);
 
 #ifdef XWAYLAND
-static void activatex11(struct wl_listener *listener, void *data);
-static void associatex11(struct wl_listener *listener, void *data);
-static void configurex11(struct wl_listener *listener, void *data);
-static void createnotifyx11(struct wl_listener *listener, void *data);
-static void dissociatex11(struct wl_listener *listener, void *data);
-static xcb_atom_t getatom(xcb_connection_t *xc, const char *name);
-static void sethints(struct wl_listener *listener, void *data);
-static void xwaylandready(struct wl_listener *listener, void *data);
-static struct wlr_xwayland *xwayland;
-static xcb_atom_t netatom[NetLast];
+void activatex11(struct wl_listener *listener, void *data);
+void associatex11(struct wl_listener *listener, void *data);
+void configurex11(struct wl_listener *listener, void *data);
+void createnotifyx11(struct wl_listener *listener, void *data);
+void dissociatex11(struct wl_listener *listener, void *data);
+xcb_atom_t getatom(xcb_connection_t *xc, const char *name);
+void sethints(struct wl_listener *listener, void *data);
+void xwaylandready(struct wl_listener *listener, void *data);
+struct wlr_xwayland *xwayland;
+xcb_atom_t netatom[NetLast];
 #endif
-
-/* configuration, allows nested code to access above variables */
-
 
 #endif //  DWL_H

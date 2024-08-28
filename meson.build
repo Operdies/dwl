@@ -17,8 +17,6 @@ add_project_arguments(
 		'-D_POSIX_C_SOURCE=200809L',
 		'-DXWAYLAND',
 
-		'-Wno-undefined-internal',
-		'-Wno-unused-function',
 		'-Wno-unused-parameter',
 		'-Wno-unused-result',
 		'-Wno-missing-braces',

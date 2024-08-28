@@ -7,6 +7,68 @@
 /* attempt to encapsulate suck into one file */
 #include "client.h"
 
+#include "dwl-ipc-unstable-v2-protocol.h"
+#include "util.h"
+
+/* variables */
+static pid_t child_pid = -1;
+static int locked;
+static void *exclusive_focus;
+static struct wl_display *dpy;
+static struct wl_event_loop *event_loop;
+static struct wlr_backend *backend;
+static struct wlr_scene *scene;
+static struct wlr_scene_tree *layers[NUM_LAYERS];
+static struct wlr_scene_tree *drag_icon;
+/* Map from ZWLR_LAYER_SHELL_* constants to Lyr* enum */
+static const int layermap[] = { LyrBg, LyrBottom, LyrTop, LyrOverlay };
+static struct wlr_renderer *drw;
+static struct wlr_allocator *alloc;
+static struct wlr_compositor *compositor;
+static struct wlr_session *session;
+
+static struct wlr_xdg_shell *xdg_shell;
+static struct wlr_xdg_activation_v1 *activation;
+static struct wlr_xdg_decoration_manager_v1 *xdg_decoration_mgr;
+static struct wl_list clients; /* tiling order */
+static struct wl_list fstack;  /* focus order */
+static struct wlr_idle_notifier_v1 *idle_notifier;
+static struct wlr_idle_inhibit_manager_v1 *idle_inhibit_mgr;
+static struct wlr_layer_shell_v1 *layer_shell;
+static struct wlr_output_manager_v1 *output_mgr;
+static struct wlr_virtual_keyboard_manager_v1 *virtual_keyboard_mgr;
+static struct wlr_virtual_pointer_manager_v1 *virtual_pointer_mgr;
+static struct wlr_cursor_shape_manager_v1 *cursor_shape_mgr;
+static struct wlr_output_power_manager_v1 *power_mgr;
+
+static struct wlr_pointer_constraints_v1 *pointer_constraints;
+static struct wlr_relative_pointer_manager_v1 *relative_pointer_mgr;
+static struct wlr_pointer_constraint_v1 *active_constraint;
+
+static struct wlr_cursor *cursor;
+static struct wlr_xcursor_manager *cursor_mgr;
+
+static struct wlr_scene_rect *root_bg;
+static struct wlr_session_lock_manager_v1 *session_lock_mgr;
+static struct wlr_scene_rect *locked_bg;
+static struct wlr_session_lock_v1 *cur_lock;
+static struct wl_listener lock_listener = {.notify = locksession};
+
+static KeyboardGroup *kb_group;
+static unsigned int cursor_mode;
+static uint32_t grab_gravity;
+static Client *grabc;
+static int grabcx, grabcy; /* client-relative */
+
+static struct wlr_output_layout *output_layout;
+static struct wlr_box sgeom;
+static struct wl_list mons;
+static Monitor *selmon;
+static struct wlr_seat *seat;
+
+static struct zdwl_ipc_manager_v2_interface dwl_manager_implementation = {.release = dwl_ipc_manager_release, .get_output = dwl_ipc_manager_get_output};
+static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags, .set_mfact = dwl_ipc_output_set_mfact};
+
 /* function implementations */
 void
 applybounds(Client *c, struct wlr_box *bbox)
@@ -161,7 +223,7 @@ arrangelayers(Monitor *m)
 			/* Deactivate the focused client. */
 			focusclient(NULL, 0);
 			exclusive_focus = l;
-			client_notify_enter(l->layer_surface->surface, wlr_seat_get_keyboard(seat));
+			client_notify_enter(seat, l->layer_surface->surface);
 			return;
 		}
 	}
@@ -564,7 +626,7 @@ createlocksurface(struct wl_listener *listener, void *data)
 	LISTEN(&lock_surface->events.destroy, &m->destroy_lock_surface, destroylocksurface);
 
 	if (m == selmon)
-		client_notify_enter(lock_surface->surface, wlr_seat_get_keyboard(seat));
+		client_notify_enter(seat, lock_surface->surface);
 }
 
 void
@@ -885,7 +947,7 @@ destroylocksurface(struct wl_listener *listener, void *data)
 
 	if (locked && cur_lock && !wl_list_empty(&cur_lock->surfaces)) {
 		surface = wl_container_of(cur_lock->surfaces.next, surface, link);
-		client_notify_enter(surface->surface, wlr_seat_get_keyboard(seat));
+		client_notify_enter(seat, surface->surface);
 	} else if (!locked) {
 		focusclient(focustop(selmon), 1);
 	} else {
@@ -1063,7 +1125,7 @@ dwl_ipc_manager_release(struct wl_client *client, struct wl_resource *resource)
 	wl_resource_destroy(resource);
 }
 
-static void
+void
 dwl_ipc_output_destroy(struct wl_resource *resource)
 {
 	DwlIpcOutput *ipc_output = wl_resource_get_user_data(resource);
@@ -1221,7 +1283,7 @@ dwl_ipc_output_release(struct wl_client *client, struct wl_resource *resource)
 	wl_resource_destroy(resource);
 }
 
-static void expandfact(const Arg *arg, int invert) {
+void expandfact(const Arg *arg, int invert) {
   float f, ff, width;
   if (!arg || !selmon || !selmon->lt[selmon->sellt]->arrange)
     return;
@@ -1244,11 +1306,11 @@ static void expandfact(const Arg *arg, int invert) {
   arrange(selmon);
 }
 
-static void expandffactleft(const Arg *arg) {
+void expandffactleft(const Arg *arg) {
   expandfact(arg, 1);
 }
 
-static void expandffactright(const Arg *arg) {
+void expandffactright(const Arg *arg) {
   expandfact(arg, 0);
 }
 
@@ -1320,7 +1382,7 @@ focusclient(Client *c, int lift)
 	motionnotify(0, NULL, 0, 0, 0, 0);
 
 	/* Have a client, so focus its top-level wlr_surface */
-	client_notify_enter(client_surface(c), wlr_seat_get_keyboard(seat));
+	client_notify_enter(seat, client_surface(c));
 
 	/* Activate the new client */
 	client_activate_surface(client_surface(c), 1);
@@ -2986,8 +3048,7 @@ updatemons(struct wl_listener *listener, void *data)
 		}
 		focusclient(focustop(selmon), 1);
 		if (selmon->lock_surface) {
-			client_notify_enter(selmon->lock_surface->surface,
-					wlr_seat_get_keyboard(seat));
+			client_notify_enter(seat, selmon->lock_surface->surface);
 			client_activate_surface(selmon->lock_surface->surface, 1);
 		}
 	}

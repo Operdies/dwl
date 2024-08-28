@@ -295,8 +295,10 @@ client_is_unmanaged(Client *c)
 }
 
 static inline void
-client_notify_enter(struct wlr_surface *s, struct wlr_keyboard *kb)
+client_notify_enter(struct wlr_seat *seat, struct wlr_surface *s)
 {
+	struct wlr_keyboard *kb;
+	kb =  wlr_seat_get_keyboard(seat);
 	if (kb)
 		wlr_seat_keyboard_notify_enter(seat, s, kb->keycodes,
 				kb->num_keycodes, &kb->modifiers);
