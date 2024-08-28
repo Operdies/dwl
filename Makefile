@@ -87,3 +87,13 @@ uninstall:
 .SUFFIXES: .c .o
 .c.o:
 	$(CC) $(CPPFLAGS) $(DWLCFLAGS) -o $@ -c $<
+
+
+build:
+	meson setup build
+debug: build
+	ninja -C build
+release_build:
+	meson setup --buildtype=release release_build
+release: release_build
+	ninja -C release_build
