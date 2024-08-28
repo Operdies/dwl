@@ -29,6 +29,12 @@ add_project_arguments(
 	language: 'c',
 )
 
+if get_option('buildtype').startswith('release')
+    add_project_arguments('-DMODKEY=WLR_MODIFIER_LOGO', language : ['c'])
+else
+    add_project_arguments('-DMODKEY=WLR_MODIFIER_ALT', language : ['c'])
+endif
+
 cc = meson.get_compiler('c')
 
 # Execute the wlroots subproject, if any
