@@ -408,7 +408,6 @@ static void xytonode(double x, double y, struct wlr_surface **psurface,
 static void zoom(const Arg *arg);
 
 /* variables */
-static const char broken[] = "broken";
 static pid_t child_pid = -1;
 static int locked;
 static void *exclusive_focus;
