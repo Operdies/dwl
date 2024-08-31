@@ -6,6 +6,10 @@ wayland_scanner = find_program(
 	native: true,
 )
 
+client_header_protocols = [
+  'dwl-ipc-unstable-v2.xml',
+]
+
 server_header_protocols = [
 	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
   'dwl-ipc-unstable-v2.xml',
@@ -23,6 +27,15 @@ private_code_protocols = [
 ]
 
 wl_protos_src = []
+
+foreach xml : client_header_protocols
+	wl_protos_src += custom_target(
+		xml.underscorify() + '_client_h',
+		input: xml,
+		output: '@BASENAME@-client-protocol.h',
+		command: [wayland_scanner, 'client-header', '@INPUT@', '@OUTPUT@'],
+	)
+endforeach
 
 foreach xml : server_header_protocols
 	wl_protos_src += custom_target(
