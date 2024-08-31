@@ -24,20 +24,20 @@ I would probably just submit raphi's patchset but I don't think that would be po
       This interface is exposed as a global in wl_registry.
 
       Clients can use this interface to get a dwl_ipc_output.
-      After binding the client will recieve the dwl_ipc_manager.tags and dwl_ipc_manager.layout events.
+      After binding the client will receive the dwl_ipc_manager.tags and dwl_ipc_manager.layout events.
       The dwl_ipc_manager.tags and dwl_ipc_manager.layout events expose tags and layouts to the client.
     </description>
 
     <request name="release" type="destructor">
       <description summary="release dwl_ipc_manager">
-        Indicates that the client will not the dwl_ipc_manager object anymore.
+        Indicates that the client will no longer needs this dwl_ipc_manager.
         Objects created through this instance are not affected.
       </description>
     </request>
 
     <request name="get_output">
-      <description summary="get a dwl_ipc_outout for a wl_output">
-        Get a dwl_ipc_outout for the specified wl_output.
+      <description summary="get a dwl_ipc_output for a wl_output">
+        Get a dwl_ipc_output for the specified wl_output.
       </description>
       <arg name="id" type="new_id" interface="zdwl_ipc_output_v2"/>
       <arg name="output" type="object" interface="wl_output"/>
@@ -54,7 +54,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
     <event name="layout">
       <description summary="Announces a layout">
         This event is sent after binding.
-        A roundtrip after binding guarantees the client recieved all layouts.
+        A roundtrip after binding guarantees the client received all layouts.
       </description>
       <arg name="name" type="string"/>
     </event>
@@ -78,21 +78,21 @@ I would probably just submit raphi's patchset but I don't think that would be po
     </enum>
 
     <request name="release" type="destructor">
-      <description summary="release dwl_ipc_outout">
-        Indicates to that the client no longer needs this dwl_ipc_output.
+      <description summary="release dwl_ipc_output">
+        Indicates that the client no longer needs this dwl_ipc_output.
       </description>
     </request>
 
     <event name="toggle_visibility">
       <description summary="Toggle client visibilty">
-        Indicates the client should hide or show themselves.
+        Indicates the client should hide or show itself.
         If the client is visible then hide, if hidden then show.
       </description>
     </event>
 
     <event name="active">
       <description summary="Update the selected output.">
-        Indicates if the output is active. Zero is invalid, nonzero is valid.
+        Indicates that the output state has changed. Zero is invalid, nonzero is valid.
       </description>
       <arg name="active" type="uint"/>
     </event>
@@ -104,7 +104,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
       <arg name="tag" type="uint" summary="Index of the tag"/>
       <arg name="state" type="uint" enum="tag_state" summary="The state of the tag."/>
       <arg name="clients" type="uint" summary="The number of clients in the tag."/>
-      <arg name="focused" type="uint" summary="If there is a focused client. Nonzero being valid, zero being invalid."/>
+      <arg name="focused" type="uint" summary="If there is a focused client. Zero is invalid, nonzero is valid."/>
     </event>
 
     <event name="layout">
