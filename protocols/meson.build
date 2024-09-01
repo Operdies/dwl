@@ -8,11 +8,13 @@ wayland_scanner = find_program(
 
 client_header_protocols = [
   'dwl-ipc-unstable-v2.xml',
+  'dwl-yoink-unstable-v1.xml',
 ]
 
 server_header_protocols = [
 	wl_protocol_dir / 'stable/xdg-shell/xdg-shell.xml',
   'dwl-ipc-unstable-v2.xml',
+  'dwl-yoink-unstable-v1.xml',
   'wlr-output-power-management-unstable-v1.xml',
 ]
 
@@ -24,6 +26,7 @@ enum_header_protocols = [
 
 private_code_protocols = [
   'dwl-ipc-unstable-v2.xml',
+  'dwl-yoink-unstable-v1.xml',
 ]
 
 wl_protos_src = []

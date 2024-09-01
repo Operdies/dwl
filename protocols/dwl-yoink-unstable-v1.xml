@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+This is largely ripped from somebar's ipc patchset; just with some personal modifications.
+I would probably just submit raphi's patchset but I don't think that would be polite.
+-->
+<protocol name="dwl_yoink_unstable_v1">
+  <description summary="yoink protocol for dwl">
+    This protocol enables similar functionality to the yoink feature in X11.
+
+    Warning! The protocol described in this file is experimental and
+    backward incompatible changes may be made. Backward compatible
+    changes may be added together with the corresponding interface
+    version bump.
+    Backward incompatible changes are done by bumping the version
+    number in the protocol and interface names and resetting the
+    interface version. Once the protocol is to be declared stable,
+    the 'z' prefix and the version number in the protocol and
+    interface names are removed and the interface version number is
+    reset.
+  </description>
+
+  <interface name="zdwl_yoink_manager_v1" version="1">
+    <description summary="manage dwl keys">
+      This interface is exposed as a global in wl_registry.
+
+      Clients can use this interface to yoink and unyoink keys.
+    </description>
+
+    <request name="release" type="destructor">
+      <description summary="release dwl_yoink_manager">
+        Indicates that the client will no longer needs this dwl_yoink_manager.
+        This causes all yoinks to be released.
+      </description>
+    </request>
+
+    <!-- <enum name="modmask" bitfield="true"> -->
+    <!--   <entry name="none" value="0" summary="no modifiers"/> -->
+    <!--   <entry name="shift" value="1" summary="shift down"/> -->
+    <!--   <entry name="meta" value="2" summary="meta down"/> -->
+    <!--   <entry name="super" value="4" summary="super down"/> -->
+    <!--   <entry name="ctrl" value="4" summary="control down"/> -->
+    <!-- </enum> -->
+
+    <enum name="event_type">
+      <entry name="released" value="0" summary="Key was released."/>
+      <entry name="pressed" value="1" summary="Key was pressed."/>
+    </enum>
+
+    <event name="keyevent">
+      <description summary="Announces a key event.">
+        Announces a key event for a yoinkbed key.
+      </description>
+      <arg name="key" type="uint"/>
+      <arg name="event" type="uint" enum="event_type" />
+      <arg name="modifiers" type="uint" enum="wlr_keyboard_modifier"/>
+    </event>
+
+    <request name="yoink_key">
+      <description summary="yoink a key.">
+        Enable yoinkbing for the specified key.
+      </description>
+      <arg name="key" type="uint"/>
+      <arg name="modifiers" type="uint" enum="modmask"/>
+      <arg name="intercept" type="int" />
+    </request>
+
+    <request name="unyoink_key">
+      <description summary="Unyoink a key.">
+        Disable yoinkbing for the specified key.
+      </description>
+      <arg name="key" type="uint"/>
+      <arg name="modifiers" type="uint" enum="modmask"/>
+    </request>
+
+    <request name="unyoink_all">
+      <description summary="Unyoink all keys.">
+        Remove all yoinks for this yoink manager.
+      </description>
+    </request>
+
+  </interface>
+</protocol>
+

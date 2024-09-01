@@ -6,9 +6,11 @@
 
 /* attempt to encapsulate suck into one file */
 #include "client.h"
+#include "yoink.h"
 
 #include "dwl-ipc-unstable-v2-protocol.h"
 #include "util.h"
+#include <wayland-server-protocol.h>
 
 /* variables */
 static pid_t child_pid = -1;
@@ -1545,6 +1547,24 @@ keybinding(uint32_t mods, xkb_keysym_t sym)
 	 * processing keys, rather than passing them on to the client for its own
 	 * processing.
 	 */
+
+	dwl_yoink_yoink *yoink;
+	dwl_yoink_client *grab_client;
+
+  wl_list_for_each(grab_client, &yoink_clients, link) {
+    if (!grab_client->resource) continue;
+    wl_list_for_each(yoink, &grab_client->yoinkset, link) {
+      if (yoink->key == sym && yoink->modifiers == CLEANMASK(mods)) {
+        zdwl_yoink_manager_v1_send_keyevent(
+          grab_client->resource, sym, 
+          1,
+          mods);
+        if (yoink->intercept) 
+          return 1;
+      }
+    }
+  }
+
 	const Key *k;
 	for (k = keys; k < END(keys); k++) {
 		if (CLEANMASK(mods) == CLEANMASK(k->mod)
@@ -1958,7 +1978,7 @@ static uint32_t get_gravity(int *x, int *y) {
   if (cursor->y > grabc->geom.y + ((double)grabc->geom.height * 2 / 3))
     gravity |= SOUTH;
 
-	// fall back to default grab if grabbing in e.g. the middle of the window
+	// fall back to default yoink if grabbing in e.g. the middle of the window
 	if (gravity == 0) 
 		gravity = SOUTHEAST;
 
@@ -1991,7 +2011,7 @@ moveresize(const Arg *arg)
 	if (!grabc || client_is_unmanaged(grabc) || grabc->isfullscreen)
 		return;
 
-	/* Float the window and tell motionnotify to grab it */
+	/* Float the window and tell motionnotify to yoink it */
 	setfloating(grabc, 1);
 	switch (cursor_mode = arg->ui) {
 	case CurMove:
@@ -2692,6 +2712,9 @@ setup(void)
 	LISTEN_STATIC(&output_mgr->events.test, outputmgrtest);
 
 	wl_global_create(dpy, &zdwl_ipc_manager_v2_interface, 3, NULL, dwl_ipc_manager_bind);
+
+	wl_list_init(&yoink_clients);
+	wl_global_create(dpy, &zdwl_yoink_manager_v1_interface, 1, NULL, dwl_yoink_manager_bind);
 
 	/* Make sure XWayland clients don't connect to the parent X server,
 	 * e.g when running in the x11 backend or the wayland backend and the

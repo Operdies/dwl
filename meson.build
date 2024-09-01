@@ -72,4 +72,5 @@ add_project_arguments('-DVERSION=@0@'.format(version), language: 'c')
 
 subdir('protocols')
 subdir('dwl')
+subdir('dwl_yoink')
 
