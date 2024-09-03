@@ -38,9 +38,26 @@ I would probably just submit raphi's patchset but I don't think that would be po
       <entry name="pressed" value="1" summary="Key was pressed."/>
     </enum>
 
+    <enum name="reject_reason">
+      <entry name="reserved" value="0" summary="Yoink is reserved by the compositor."/>
+      <entry name="already_taken" value="1" summary="Yoink is taken by another client."/>
+    </enum>
+
+    <event name="yoink_rejected">
+      <description summary="Announces that a yoink was rejected.">
+        The compositor rejected the yoink. This could be because the combination was
+        reserved, or grabbed by another client. This can be sent on
+        initial yoink request, or at any time the compository decides to
+        take it back.
+      </description>
+      <arg name="key" type="uint"/>
+      <arg name="modifiers" type="uint" enum="wlr_keyboard_modifier"/>
+      <arg name="reason" type="uint" enum="reject_reason"/>
+    </event>
+
     <event name="keyevent">
       <description summary="Announces a key event.">
-        Announces a key event for a yoinkbed key.
+        Announces a key event for a yoinked key.
       </description>
       <arg name="key" type="uint"/>
       <arg name="event" type="uint" enum="event_type" />
