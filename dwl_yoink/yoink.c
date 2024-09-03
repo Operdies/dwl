@@ -27,8 +27,6 @@ static void
 dwl_yoink_keyevent(void *data,
                       struct zdwl_yoink_manager_v1 *m,
                       uint32_t key, uint32_t event, uint32_t modifiers) {
-  char *evt = event == ZDWL_YOINK_MANAGER_V1_EVENT_TYPE_PRESSED ? "pressed" : "released";
-
   if (event == ZDWL_YOINK_MANAGER_V1_EVENT_TYPE_PRESSED) {
     for (int i = 0; i < (int)(sizeof(keybinds) / sizeof(keybinds[0])); i++) {
       keybind kb = keybinds[i];

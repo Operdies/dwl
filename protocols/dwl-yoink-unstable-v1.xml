@@ -33,14 +33,6 @@ I would probably just submit raphi's patchset but I don't think that would be po
       </description>
     </request>
 
-    <!-- <enum name="modmask" bitfield="true"> -->
-    <!--   <entry name="none" value="0" summary="no modifiers"/> -->
-    <!--   <entry name="shift" value="1" summary="shift down"/> -->
-    <!--   <entry name="meta" value="2" summary="meta down"/> -->
-    <!--   <entry name="super" value="4" summary="super down"/> -->
-    <!--   <entry name="ctrl" value="4" summary="control down"/> -->
-    <!-- </enum> -->
-
     <enum name="event_type">
       <entry name="released" value="0" summary="Key was released."/>
       <entry name="pressed" value="1" summary="Key was pressed."/>
@@ -57,7 +49,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
 
     <request name="yoink_key">
       <description summary="yoink a key.">
-        Enable yoinkbing for the specified key.
+        Yoink the specified key.
       </description>
       <arg name="key" type="uint"/>
       <arg name="modifiers" type="uint" enum="modmask"/>
@@ -66,7 +58,7 @@ I would probably just submit raphi's patchset but I don't think that would be po
 
     <request name="unyoink_key">
       <description summary="Unyoink a key.">
-        Disable yoinkbing for the specified key.
+        Unyoink the specified key.
       </description>
       <arg name="key" type="uint"/>
       <arg name="modifiers" type="uint" enum="modmask"/>
