@@ -9,31 +9,57 @@
 #include <wayland-util.h>
 #include <wlr/types/wlr_keyboard.h>
 #include <xkbcommon/xkbcommon-keysyms.h>
+#include "../dwl/dwl.h"
+
+/* If you want to use the windows key for MODKEY, use WLR_MODIFIER_LOGO */
+#ifndef MODKEY
+#define MODKEY WLR_MODIFIER_LOGO
+#endif
 
 static struct wl_display *display;
 static struct wl_registry *registry;
 
-typedef struct {
-  uint32_t modifiers;
-  uint32_t key;
-  char *action;
-} keybind;
+static const char *menucmd[] = { "rofi", "-show", "drun", NULL };
+static const char *whichkeycmd[] = { "wlr-which-key", NULL };
+static const char *powermenucmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/power.yaml", NULL };
+static const char *clipboardcmd[] = { "sh", "-c", "clipman pick -t wofi --err-on-no-selection && wtype -M ctrl -M shift v", NULL };
+static const char *screenshotcmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/screenshot.yaml", NULL };
+static const char *hoardmacro[] = { "sh", "-c", "soffice ~/repos/ffxiv/Hoard\\ Farm.ods 'macro:///Standard.Module1.IncrementHoard()'", NULL };
 
-keybind keybinds[] = {
-  { WLR_MODIFIER_ALT | WLR_MODIFIER_SHIFT, XKB_KEY_Return, "thunar" }
+static const Key keys[] = {
+  /* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
+  /* modifier                  key                 function        argument */
+  { MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
+  { MODKEY,                    XKB_KEY_r,          spawn,          {.v = whichkeycmd } },
+  { MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_E,          spawn,          {.v = powermenucmd } },
+  { MODKEY,                    XKB_KEY_v,          spawn,          {.v = clipboardcmd} },
+  { MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_S,          spawn,          {.v = screenshotcmd} },
+  { MODKEY,                    XKB_KEY_grave,      spawn,          {.v = hoardmacro } },
 };
+
+
+void
+spawn(const Arg *arg)
+{
+	if (fork() == 0) {
+		dup2(STDERR_FILENO, STDOUT_FILENO);
+		setsid();
+		execvp(((char **)arg->v)[0], (char **)arg->v);
+		die("dwl: execvp %s failed:", ((char **)arg->v)[0]);
+	}
+}
+
+
 
 static void
 dwl_yoink_keyevent(void *data,
                       struct zdwl_yoink_manager_v1 *m,
                       uint32_t key, uint32_t event, uint32_t modifiers) {
   if (event == ZDWL_YOINK_MANAGER_V1_EVENT_TYPE_PRESSED) {
-    for (int i = 0; i < (int)(sizeof(keybinds) / sizeof(keybinds[0])); i++) {
-      keybind kb = keybinds[i];
-      if (kb.action && kb.key == key && kb.modifiers == modifiers) {
-        if (fork() == 0) {
-          system(kb.action);
-        }
+    for (int i = 0; i < (int)(sizeof(keys) / sizeof(keys[0])); i++) {
+	  const Key *k = &keys[i];
+	  if (k && k->func && k->mod == modifiers && k->keysym == key){
+		k->func(&k->arg);
       }
     }
   }
@@ -50,9 +76,9 @@ static void global_add(void *data, struct wl_registry *wl_registry,
         wl_registry, name, &zdwl_yoink_manager_v1_interface, 1);
     zdwl_yoink_manager_v1_add_listener(yoink_manager, &keylogger, NULL);
     
-    for (int i = 0; i < (int)(sizeof(keybinds) / sizeof(keybinds[0])); i++) {
-      keybind kb = keybinds[i];
-      zdwl_yoink_manager_v1_yoink_key(yoink_manager, kb.key, kb.modifiers, 1);
+    for (int i = 0; i < (int)(sizeof(keys) / sizeof(keys[0])); i++) {
+      const Key *kb = &keys[i];
+      zdwl_yoink_manager_v1_yoink_key(yoink_manager, kb->keysym, kb->mod, 1);
     }
   }
 }

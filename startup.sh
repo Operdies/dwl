@@ -23,6 +23,7 @@ do_startup() {
   # clipboard data is synchronized directly between wayland clients.
   # To persist the clipboard when an application is closed, we use a clipboard manager.
   wl-paste -t text --watch clipman store & 
+  "$HOME/repos/dwl/release/dwl_yoink/yoink" &
 }
 
 do_launch() {

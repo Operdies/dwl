@@ -1551,30 +1551,41 @@ keybinding(uint32_t mods, xkb_keysym_t sym)
 	dwl_yoink_yoink *yoink;
 	dwl_yoink_client *grab_client;
 
-  wl_list_for_each(grab_client, &yoink_clients, link) {
-    if (!grab_client->resource) continue;
-    wl_list_for_each(yoink, &grab_client->yoinkset, link) {
-      if (yoink->key == sym && yoink->modifiers == CLEANMASK(mods)) {
-        zdwl_yoink_manager_v1_send_keyevent(
-          grab_client->resource, sym, 
-          1,
-          mods);
-        if (yoink->intercept) 
-          return 1;
-      }
-    }
-  }
-
-	const Key *k;
-	for (k = keys; k < END(keys); k++) {
-		if (CLEANMASK(mods) == CLEANMASK(k->mod)
+	{ // Compositor binds take priority
+		const Key *k;
+		for (k = keys; k < END(keys); k++) {
+			if (CLEANMASK(mods) == CLEANMASK(k->mod)
 				&& sym == k->keysym && k->func) {
-			k->func(&k->arg);
-			return 1;
+				k->func(&k->arg);
+				return 1;
+			}
 		}
 	}
+
+	{ // Then yoinks. TODO: Reject yoink if they interfere with server binds?
+		wl_list_for_each(grab_client, &yoink_clients, link) {
+			if (!grab_client->resource)  {
+				// TODO: Did I fix this already?
+				wlr_log(WLR_DEBUG, "Invalid resource on yoink client.");
+				continue;
+			}
+			wl_list_for_each(yoink, &grab_client->yoinkset, link) {
+				if (yoink->key == sym && yoink->modifiers == CLEANMASK(mods)) {
+					zdwl_yoink_manager_v1_send_keyevent(
+						grab_client->resource, sym, 
+						1,
+						mods);
+					if (yoink->intercept) 
+						return 1;
+				}
+			}
+		}
+	}
+
 	return 0;
 }
+
+
 
 void
 keypress(struct wl_listener *listener, void *data)

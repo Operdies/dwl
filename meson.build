@@ -19,6 +19,7 @@ add_project_arguments(
 
 		'-Wno-unused-parameter',
 		'-Wno-unused-result',
+		'-Wno-unused-variable',
 		'-Wno-missing-braces',
 		'-Wno-format-zero-length',
 		'-Wundef',
