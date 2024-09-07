@@ -38,13 +38,13 @@ static const Rule rules[] = {
 	{ "org.pulseaudio.pavucontrol", NULL, 0,        1,           -1 },
 };
 
-enum { _WIDEFOCUS, _TILE, _MONOCLE, _DECK, _DOUBLESTACK, _FLOATING };
+enum { _TILE, _WIDEFOCUS, _MONOCLE, _DECK, _DOUBLESTACK, _FLOATING };
 
 /* layout(s) */
 static const Layout layouts[] = {
 	/* symbol     arrange function */
-	{ "=[]=",     widefocus },
 	{ "[]=",      tile },
+	{ "=[]=",     widefocus },
 	{ "[M]",      monocle },
 	{ "[][D]",    deck },
 	{ "[][]",     doublestack },
