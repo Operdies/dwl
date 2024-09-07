@@ -11,6 +11,32 @@
 #include <xkbcommon/xkbcommon-keysyms.h>
 #include "../dwl/dwl.h"
 
+/* TODO: Create Yeet protocol
+ * The use case of this is basically hot key remapping.
+ * investigate if this is needed or wltype does everything already.
+ */
+
+/* TODO: Implement yoink rejection on both client / server side.
+ * A yoink should be rejected if it is already in use by the server,
+ * and potentially by other yoinkers. `intercept` should reserve a yoink
+ * since the server will not propagate yoinks in this case, so there is
+ * (seemingly) no need for an `exclusive` flag in the protocol.
+ */
+
+/* TODO: implement dwl_ipc protocol
+ * This is needed to migrate the rest of the binds that are still implemented on
+ * the dwl side. This will likely also require some additional IPC functions for
+ * things like manipulating the stack. There is no need to migrate things like
+ * CHVT since I really don't want to risk breaking the compositor itself.
+ */
+
+/* TODO: Add way to reload binds
+ * The simplest way to do this is probably just:
+ * 0. User rebuilds yoink application
+ * 1. cleanup
+ * 2. exec(self)
+ */
+
 /* If you want to use the windows key for MODKEY, use WLR_MODIFIER_LOGO */
 #ifndef MODKEY
 #define MODKEY WLR_MODIFIER_LOGO
