@@ -33,6 +33,7 @@ do_launch() {
   export XDG_CURRENT_DESKTOP=dwl
   # Create a dbus session. This is primarily needed for kwallet
   export $(dbus-launch)
+  [ -x "$HOME/repos/dwl/release/dwl/dwl" ] || cd ~/repos/dwl && make release
   "$HOME/repos/dwl/release/dwl/dwl" -s "$0 startup"
 }
 
