@@ -38,13 +38,14 @@ static const Rule rules[] = {
 	{ "org.pulseaudio.pavucontrol", NULL, 0,        1,           -1 },
 };
 
-enum { _TILE, _WIDEFOCUS, _MONOCLE, _DECK, _DOUBLESTACK, _FLOATING };
+enum { _TILE, _WIDEFOCUS, _RWIDEFOCUS, _MONOCLE, _DECK, _DOUBLESTACK, _FLOATING };
 
 /* layout(s) */
 static const Layout layouts[] = {
 	/* symbol     arrange function */
 	{ "[]=",      tile },
-	{ "=[]=",     widefocus },
+	{ "|[]=",     widefocus },
+	{ "=[]|",     rwidefocus },
 	{ "[M]",      monocle },
 	{ "[][D]",    deck },
 	{ "[][]",     doublestack },
@@ -171,7 +172,7 @@ static const Key keys[] = {
 	{ MODKEY,                    XKB_KEY_f,          setlayout,      {.v = &layouts[_FLOATING]} },
 	{ MODKEY,                    XKB_KEY_d,          setlayout,      {.v = &layouts[_DECK]} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_T,          setlayout,      {.v = &layouts[_DOUBLESTACK]} },
-	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          setlayout,      {.v = &layouts[_WIDEFOCUS]} },
+	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          togglewidefocus,{0} },
 	{ MODKEY,                    XKB_KEY_space,   togglesloppyfocus, {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
 	{ MODKEY,                    XKB_KEY_e,        togglefullscreen, {0} },

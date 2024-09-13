@@ -398,6 +398,8 @@ void urgent(struct wl_listener *listener, void *data);
 void view(const Arg *arg);
 void virtualkeyboard(struct wl_listener *listener, void *data);
 void virtualpointer(struct wl_listener *listener, void *data);
+void togglewidefocus(const Arg *arg);
+void rwidefocus(Monitor *m);
 void widefocus(Monitor *m);
 Monitor *xytomon(double x, double y);
 void xytonode(double x, double y, struct wlr_surface **psurface,
