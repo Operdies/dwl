@@ -50,7 +50,6 @@ static const char *whichkeycmd[] = { "wlr-which-key", NULL };
 static const char *powermenucmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/power.yaml", NULL };
 static const char *clipboardcmd[] = { "sh", "-c", "clipman pick -t wofi --err-on-no-selection && wtype -M ctrl -M shift v", NULL };
 static const char *screenshotcmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/screenshot.yaml", NULL };
-static const char *hoardmacro[] = { "sh", "-c", "soffice ~/repos/ffxiv/Hoard\\ Farm.ods 'macro:///Standard.Module1.IncrementHoard()'", NULL };
 
 static const Key keys[] = {
   /* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
@@ -60,7 +59,6 @@ static const Key keys[] = {
   { MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_E,          spawn,          {.v = powermenucmd } },
   { MODKEY,                    XKB_KEY_v,          spawn,          {.v = clipboardcmd} },
   { MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_S,          spawn,          {.v = screenshotcmd} },
-  { MODKEY,                    XKB_KEY_grave,      spawn,          {.v = hoardmacro } },
 };
 
 
