@@ -90,6 +90,28 @@ applybounds(Client *c, struct wlr_box *bbox)
 }
 
 void
+scenebuffersetopacity(struct wlr_scene_buffer *buffer, int sx, int sy, void *data)
+{
+	Client *focused, *c = data;
+	focused = focustop(selmon);
+
+	/* xdg-popups are children of Client.scene, we do not have to worry about
+		 messing with them. */
+	if (c && c->scene_surface) {
+		float opacity;
+		if (c->isfullscreen) {
+			opacity = 1.0f;
+		} else if (c->isfloating) {
+			opacity = c == focused ? 1.0f : 0.7f;
+		} else  {
+			opacity = 1.0f;
+		}
+		wlr_scene_buffer_set_opacity(buffer, opacity);
+		buffer->opacity_override = opacity;
+	}
+}
+
+void
 applyrules(Client *c)
 {
 	/* rule matching */
@@ -2291,6 +2313,7 @@ resize(Client *c, struct wlr_box geo, int interact)
 	}
 	client_get_clip(c, &clip);
 	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
+	wlr_scene_node_for_each_buffer(&c->scene_surface->node, scenebuffersetopacity, c);	
 }
 
 void
