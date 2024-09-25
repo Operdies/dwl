@@ -376,6 +376,7 @@ void setmon(Client *c, Monitor *m, uint32_t newtags);
 void setpsel(struct wl_listener *listener, void *data);
 void setsel(struct wl_listener *listener, void *data);
 void setup(void);
+int solitary(Client *c);
 void spawn(const Arg *arg);
 void startdrag(struct wl_listener *listener, void *data);
 void swapmaster(const Arg *arg);

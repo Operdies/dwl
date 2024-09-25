@@ -2262,7 +2262,7 @@ resize(Client *c, struct wlr_box geo, int interact)
 	struct wlr_box *bbox;
 	struct wlr_box clip;
 	struct timespec now;
-	uint32_t ms;
+	uint32_t ms, bw;
 
 	if (!c->mon || !client_surface(c)->mapped)
 		return;
@@ -2276,6 +2276,7 @@ resize(Client *c, struct wlr_box geo, int interact)
 	applybounds(c, bbox);
 
 	geo = c->geom;
+	bw = singlemonocle && solitary(c) ? 0 : c->bw;
 
 	if (!c->isfloating && !c->isfullscreen) {
 		geo.width -= gaps;
@@ -2289,27 +2290,27 @@ resize(Client *c, struct wlr_box geo, int interact)
 			geo.height -= gaps;
 		}
 
-		geo.width = MAX(1 + 2 * (int)c->bw, geo.width);
-		geo.height = MAX(1 + 2 * (int)c->bw, geo.height);
+		geo.width = MAX(1 + 2 * (int)bw, geo.width);
+		geo.height = MAX(1 + 2 * (int)bw, geo.height);
 	}
 
 	/* Update scene-graph, including borders */
 	wlr_scene_node_set_position(&c->scene->node, geo.x, geo.y);
-	wlr_scene_node_set_position(&c->scene_surface->node, c->bw, c->bw);
-	wlr_scene_rect_set_size(c->border[0], geo.width, c->bw);
-	wlr_scene_rect_set_size(c->border[1], geo.width, c->bw);
-	wlr_scene_rect_set_size(c->border[2], c->bw, geo.height - 2 * c->bw);
-	wlr_scene_rect_set_size(c->border[3], c->bw, geo.height - 2 * c->bw);
-	wlr_scene_node_set_position(&c->border[1]->node, 0, geo.height - c->bw);
-	wlr_scene_node_set_position(&c->border[2]->node, 0, c->bw);
-	wlr_scene_node_set_position(&c->border[3]->node, geo.width - c->bw, c->bw);
+	wlr_scene_node_set_position(&c->scene_surface->node, bw, bw);
+	wlr_scene_rect_set_size(c->border[0], geo.width, bw);
+	wlr_scene_rect_set_size(c->border[1], geo.width, bw);
+	wlr_scene_rect_set_size(c->border[2], bw, geo.height - 2 * bw);
+	wlr_scene_rect_set_size(c->border[3], bw, geo.height - 2 * bw);
+	wlr_scene_node_set_position(&c->border[1]->node, 0, geo.height - bw);
+	wlr_scene_node_set_position(&c->border[2]->node, 0, bw);
+	wlr_scene_node_set_position(&c->border[3]->node, geo.width - bw, bw);
 
 	clock_gettime(CLOCK_MONOTONIC_RAW, &now);
 	ms = now.tv_sec * 1000 + now.tv_nsec / 1000000;
 	if (c->last_resize == 0 || ms - c->last_resize >= c->resize_ms) {
 		c->last_resize = ms;
 		/* this is a no-op if size hasn't changed */
-		c->resize = client_set_size(c, geo.width - 2 * c->bw, geo.height - 2 * c->bw);
+		c->resize = client_set_size(c, geo.width - 2 * bw, geo.height - 2 * bw);
 	}
 	client_get_clip(c, &clip);
 	wlr_scene_subsurface_tree_set_clip(&c->scene_surface->node, &clip);
@@ -2780,6 +2781,19 @@ setup(void)
 		fprintf(stderr, "failed to setup XWayland X server, continuing without it\n");
 	}
 #endif
+}
+
+int
+solitary(Client *c)
+{
+  Client *tmp;
+  if (c->isfullscreen) return 1;
+  if (c->isfloating) return 0;
+  wl_list_for_each(tmp, &clients, link) {
+    if (tmp == c || tmp->isfloating) continue;
+    if (VISIBLEON(tmp, c->mon)) return 0;
+  }
+  return 1;
 }
 
 void
