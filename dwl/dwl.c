@@ -1521,12 +1521,13 @@ handlesig(int signo)
 	}
 }
 
+
 void
 incnmaster(const Arg *arg)
 {
 	if (!arg || !selmon)
 		return;
-	selmon->nmaster = MAX(selmon->nmaster + arg->i, 0);
+	selmon->nmaster = CLAMP(selmon->nmaster + arg->i, 0, 10);
 	arrange(selmon);
 }
 
