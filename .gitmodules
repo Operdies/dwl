@@ -1,6 +1,3 @@
-[submodule "subprojects/--force"]
-	path = subprojects/--force
-	url = https://gitlab.freedesktop.org/wlroots/wlroots
 [submodule "subprojects/wlroots"]
 	path = subprojects/wlroots
-	url = https://gitlab.freedesktop.org/wlroots/wlroots
+	url = https://github.com/Operdies/wlroots
