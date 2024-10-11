@@ -10,6 +10,7 @@
 
 #include "dwl-ipc-unstable-v2-protocol.h"
 #include "util.h"
+#include <stdio.h>
 #include <wayland-server-protocol.h>
 
 /* variables */
@@ -1197,8 +1198,26 @@ dwl_ipc_output_printstatus_to(DwlIpcOutput *ipc_output)
 	title = focused ? client_get_title(focused) : "";
 	appid = focused ? client_get_appid(focused) : "";
 
+	char titlebuf[500];
+	uint32_t cursor = 0;
+	char thickline[] = "┃";
+	if (focused) {
+		for (int i = 0; i < TAGCOUNT; i++) {
+			uint32_t tagi = 1 << i;
+			if (focused->tags & tagi) {
+				titlebuf[cursor++] = i + 1 + '0';
+				for (uint32_t j = 0; j < sizeof(thickline) - 1; j++)
+					titlebuf[cursor++] = thickline[j];
+			}
+		}
+		for (uint32_t i = 0; title && title[i] && cursor < sizeof(titlebuf) - 1; i++) {
+			titlebuf[cursor++] = title[i];
+		}
+		titlebuf[cursor] = 0;
+	}
+
 	zdwl_ipc_output_v2_send_layout(ipc_output->resource, monitor->lt[monitor->sellt] - layouts);
-	zdwl_ipc_output_v2_send_title(ipc_output->resource, title);
+	zdwl_ipc_output_v2_send_title(ipc_output->resource, titlebuf);
 	zdwl_ipc_output_v2_send_appid(ipc_output->resource, appid);
 	zdwl_ipc_output_v2_send_layout_symbol(ipc_output->resource, monitor->ltsymbol);
 	if (wl_resource_get_version(ipc_output->resource) >= ZDWL_IPC_OUTPUT_V2_FULLSCREEN_SINCE_VERSION) {
