@@ -50,11 +50,13 @@ static const char *whichkeycmd[] = { "wlr-which-key", NULL };
 static const char *powermenucmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/power.yaml", NULL };
 static const char *clipboardcmd[] = { "sh", "-c", "clipman pick -t wofi --err-on-no-selection && wtype -M ctrl -M shift v", NULL };
 static const char *screenshotcmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/screenshot.yaml", NULL };
+static const char *brightnesscmd[] = { "sh", "-c", "wlr-which-key ~/.config/wlr-which-key/brightness.yaml", NULL };
 
 static const Key keys[] = {
   /* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
   /* modifier                  key                 function        argument */
   { MODKEY,                    XKB_KEY_p,          spawn,          {.v = menucmd} },
+  { MODKEY,                    XKB_KEY_b,          spawn,          {.v = brightnesscmd } },
   { MODKEY,                    XKB_KEY_r,          spawn,          {.v = whichkeycmd } },
   { MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_E,          spawn,          {.v = powermenucmd } },
   { MODKEY,                    XKB_KEY_v,          spawn,          {.v = clipboardcmd} },
