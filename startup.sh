@@ -24,6 +24,10 @@ do_startup() {
   # To persist the clipboard when an application is closed, we use a clipboard manager.
   wl-paste -t text --watch clipman store & 
   "$HOME/repos/dwl/release/dwl_yoink/yoink" &
+  # Fix an issue preventing gparted from launching. This issue occurs because
+  # root is not allowed to display desktop applications by default under
+  # XWayland
+  xhost +SI:localuser:root &
 }
 
 do_launch() {
