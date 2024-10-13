@@ -139,11 +139,12 @@ client_get_appid(Client *c)
 static inline void
 client_get_clip(Client *c, struct wlr_box *clip)
 {
+	int bw = singlemonocle && solitary(c) ? 0 : c->bw;
 	*clip = (struct wlr_box){
 		.x = 0,
 		.y = 0,
-		.width = c->geom.width - c->bw,
-		.height = c->geom.height - c->bw,
+		.width = c->geom.width - bw,
+		.height = c->geom.height - bw,
 	};
 
 #ifdef XWAYLAND
