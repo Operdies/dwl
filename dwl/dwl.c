@@ -72,6 +72,8 @@ static struct wlr_seat *seat;
 static struct zdwl_ipc_manager_v2_interface dwl_manager_implementation = {.release = dwl_ipc_manager_release, .get_output = dwl_ipc_manager_get_output};
 static struct zdwl_ipc_output_v2_interface dwl_output_implementation = {.release = dwl_ipc_output_release, .set_tags = dwl_ipc_output_set_tags, .set_layout = dwl_ipc_output_set_layout, .set_client_tags = dwl_ipc_output_set_client_tags, .set_mfact = dwl_ipc_output_set_mfact};
 
+static void enforcecursorjail(void);
+
 /* function implementations */
 void
 applybounds(Client *c, struct wlr_box *bbox)
@@ -842,6 +844,8 @@ cursorframe(struct wl_listener *listener, void *data)
 	 * same time, in which case a frame event won't be sent in between. */
 	/* Notify the client with pointer focus of the frame event. */
 	wlr_seat_pointer_notify_frame(seat);
+	if (lockcursortoactivewindow)
+		enforcecursorjail();
 }
 
 void
@@ -1882,6 +1886,20 @@ movestack(const Arg *arg)
 }
 
 void
+enforcecursorjail(void) {
+	Client *c;
+	int sx, sy, slack;
+	sx = cursor->x;
+	sy = cursor->y;
+	if (selmon && (c = focustop(selmon))) {
+		slack = c->bw + gaps + 4;
+		sx = CLAMP(sx, c->geom.x + slack, c->geom.x + c->geom.width - slack - 1);
+		sy = CLAMP(sy, c->geom.y + slack, c->geom.y + c->geom.height - slack - 1);
+		wlr_cursor_warp_closest(cursor, NULL, sx, sy);
+	}
+}
+
+void
 motionabsolute(struct wl_listener *listener, void *data)
 {
 	/* This event is forwarded by the cursor when a pointer emits an _absolute_
@@ -1953,7 +1971,7 @@ motionnotify(uint32_t time, struct wlr_input_device *device, double dx, double d
 		wlr_idle_notifier_v1_notify_activity(idle_notifier, seat);
 
 		/* Update selmon (even while dragging a window) */
-		if (sloppyfocus)
+		if (sloppyfocus && !lockcursortoactivewindow)
 			selmon = xytomon(cursor->x, cursor->y);
 	}
 
@@ -2168,7 +2186,7 @@ pointerfocus(Client *c, struct wlr_surface *surface, double sx, double sy,
 	struct timespec now;
 
 	if (surface != seat->pointer_state.focused_surface &&
-			sloppyfocus && time && c && !client_is_unmanaged(c))
+			sloppyfocus && !lockcursortoactivewindow && time && c && !client_is_unmanaged(c))
 		focusclient(c, 0);
 
 	/* If surface is NULL, clear pointer focus */

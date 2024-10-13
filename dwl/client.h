@@ -2,6 +2,7 @@
 #define CLIENT_H
 
 #include "dwl.h"
+#include "config.h"
 
 /*
  * Attempt to consolidate unavoidable suck into one file, away from dwl.c.  This

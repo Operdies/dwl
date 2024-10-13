@@ -10,7 +10,7 @@ static const unsigned int borderpx         = 1;  /* border pixel of windows */
 static const unsigned int resize_debounce_ms  = 40; /* how often are resize events sent to clients during drag-resizing */
 static const unsigned int minheight       = 50; /* minimum height of windows in pixels */
 static const unsigned int minwidth        = 50; /* minimum width of windows in pixels */
-static const int singlemonocle           = 1; /* hide borders when there are no other tiled windows */
+static const int singlemonocle            = 1; /* hide borders when there are no other tiled windows */
 static int gaps                           = 0;
 static const float *rootcolor             = colorschemes[colorscheme][CRUST];
 static const float *bordercolor           = colorschemes[colorscheme][OVERLAY0];
@@ -18,6 +18,8 @@ static const float *focuscolor            = colorschemes[colorscheme][MAUVE];
 static const float *urgentcolor           = colorschemes[colorscheme][RED];
 /* This conforms to the xdg-protocol. Set the alpha to zero to restore the old behavior */
 static const float *fullscreen_bg         = colorschemes[colorscheme][BASE];
+/* This is a bit of a hack to handle games (witcher 3) using software cursors without properly confining the cursor */
+static bool lockcursortoactivewindow      = 0;
 
 /* tagging - TAGCOUNT must be no greater than 31 */
 #define TAGCOUNT (9)
@@ -142,6 +144,11 @@ static const enum libinput_config_tap_button_map button_map = LIBINPUT_CONFIG_TA
 /* commands */
 static const char *termcmd[] = { "alacritty", NULL };
 
+static void togglelockcursor(const Arg *arg) {
+  lockcursortoactivewindow = !lockcursortoactivewindow;
+}
+
+#define MOD_CS (MODKEY|WLR_MODIFIER_SHIFT|WLR_MODIFIER_CTRL)
 static const Key keys[] = {
 	/* Note that Shift changes certain key codes: c -> C, 2 -> at, etc. */
 	/* modifier                  key                 function        argument */
@@ -175,6 +182,7 @@ static const Key keys[] = {
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_W,          togglewidefocus,{0} },
 	{ MODKEY,                    XKB_KEY_space,   togglesloppyfocus, {0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_space,      togglefloating, {0} },
+	{ MOD_CS,                    XKB_KEY_space,     togglelockcursor,{0} },
 	{ MODKEY,                    XKB_KEY_e,        togglefullscreen, {0} },
 	{ MODKEY,                    XKB_KEY_0,          view,           {.ui = ~0} },
 	{ MODKEY|WLR_MODIFIER_SHIFT, XKB_KEY_parenright, tag,            {.ui = ~0} },
