@@ -254,6 +254,18 @@ arrangelayers(Monitor *m)
 			return;
 		}
 	}
+
+	/* If there is no keyboard interactive layer, clear keyboard focus or return it to the focused client */
+	exclusive_focus = NULL;
+	Client *c;
+	c = focustop(selmon);
+	if (c) {
+		/* If a client is focused, restore keyboard focus to that client */
+		client_notify_enter(seat, client_surface(c));
+	} else {
+		/* Otherwise, just clear the keyboard focus */
+		wlr_seat_keyboard_clear_focus(seat);
+	}
 }
 
 void
