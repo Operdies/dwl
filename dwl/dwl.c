@@ -1215,6 +1215,7 @@ dwl_ipc_output_printstatus_to(DwlIpcOutput *ipc_output)
 	appid = focused ? client_get_appid(focused) : "";
 
 	char titlebuf[500];
+	titlebuf[0] = 0;
 	uint32_t cursor = 0;
 	char thickline[] = "┃";
 	if (focused) {
