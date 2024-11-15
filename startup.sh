@@ -28,6 +28,7 @@ do_startup() {
   # root is not allowed to display desktop applications by default under
   # XWayland
   xhost +SI:localuser:root &
+  way-displays &
 }
 
 do_launch() {
